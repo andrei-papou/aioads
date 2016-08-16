@@ -21,6 +21,11 @@ class DevSettings(BaseSettings):
     DB_HOST = '127.0.0.1'
     DB_PASS = 'homm1994'
 
+    TEST_DB_USER = 'qabot'
+    TEST_DB_NAME = 'ads-dev-test'
+    TEST_DB_HOST = '127.0.0.1'
+    TEST_DB_PASS = 'homm1994'
+
     SALT_ROUNDS = 10
 
     LOGGER_LEVEL = logging.DEBUG

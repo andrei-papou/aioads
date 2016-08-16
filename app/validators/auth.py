@@ -15,7 +15,7 @@ class LoginValidator(Model):
 
 class SignupValidator(Model):
     email = StringType(regex=EMAIL_REGEX, max_length=255, required=True)
-    password = StringType(required=True)
+    password = StringType(required=True, min_length=3)
     first_name = StringType(max_length=255)
     last_name = StringType(max_length=255)
 

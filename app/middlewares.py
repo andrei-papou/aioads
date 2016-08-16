@@ -31,3 +31,4 @@ async def db_middleware(app, handler):
 
 
 middlewares = (db_middleware, logging_middleware,)
+test_middlewares = (db_middleware,)

@@ -22,7 +22,7 @@ def init_app(loop):
     logger.setLevel(settings.LOGGER_LEVEL)
     sh = logging.StreamHandler()
     sh.setLevel(settings.LOGGER_LEVEL)
-    fmtr = logging.Formatter('[ %(asctime)s ] --- [ %(levelname)s ] --- %(message)s ')
+    fmtr = logging.Formatter('[ %(asctime)s ] --- [ %(levelname)s ] --- %(message)s')
     sh.setFormatter(fmtr)
     logger.addHandler(sh)
 
