@@ -8,6 +8,7 @@ class BaseSettings:
     JWT_EXT_DELTA_SECODNS = 365 * 24 * 3600
 
     THREAD_POOL_LIMIT = 2
+    PROCESS_POOL_LIMIT = 20
 
     LOGGER_NAME = 'ads-logger'
 

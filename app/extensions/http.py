@@ -1,5 +1,6 @@
 import json
 from aiohttp.web import Response
+from constants import ERROR_MESSAGES
 
 
 class StatusCodes:
@@ -54,8 +55,13 @@ class HTTPNoContent(JSONBodyResponse):
 class HTTPBadRequest(JSONBodyResponse):
     status_code = StatusCodes.BAD_REQUEST
 
-    def __init__(self, *args, errors={}, **kwargs):
-        kwargs['data'] = {'errors': errors}
+    def __init__(self, code, *args, errors=None, **kwargs):
+        errors = errors or {}
+        kwargs['data'] = {
+            'code': code,
+            'message': ERROR_MESSAGES[str(code)],
+            'errors': errors
+        }
         super().__init__(*args, **kwargs)
 
 

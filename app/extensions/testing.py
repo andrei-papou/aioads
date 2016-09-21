@@ -49,3 +49,10 @@ class BaseTestCase(AioHTTPTestCase):
         self.loop.run_until_complete(self.tear_down())
         self.loop.run_until_complete(self.reset_db())
         super().tearDown()
+
+    def check_400_response_body(self, body, code, *invalid_fields):
+        assert 'code' in body
+        assert body['code'] == code
+        assert 'errors' in body
+        for field in invalid_fields:
+            assert field in body['errors']

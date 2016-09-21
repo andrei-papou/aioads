@@ -1,6 +1,7 @@
 import json
 from schematics.exceptions import ValidationError, ModelConversionError
 from extensions.http import HTTPBadRequest
+from constants import ApiErrorCodes
 
 
 def validate_body_json(validator):
@@ -9,12 +10,12 @@ def validate_body_json(validator):
             try:
                 data = await request.json()
             except json.JSONDecodeError:
-                return HTTPBadRequest(errors={'general': ['Invalid JSON']})
+                return HTTPBadRequest(code=ApiErrorCodes.INVALID_BODY_JSON, errors={'general': ['Invalid JSON']})
             try:
                 validator(data).validate()
                 request.data = data
             except (ValidationError, ModelConversionError) as e:
-                return HTTPBadRequest(errors=e.messages)
+                return HTTPBadRequest(code=ApiErrorCodes.BODY_VALIDATION_ERROR, errors=e.messages)
             return await handler(request, *args)
         return wrapper
     return decorator

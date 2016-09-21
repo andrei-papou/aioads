@@ -1,8 +1,12 @@
 import json
+import jwt
 from aiohttp.test_utils import unittest_run_loop
 from sqlalchemy import select
 from extensions.testing import BaseTestCase
 from extensions.http import StatusCodes
+from extensions.user_model import UserTypes
+from settings import settings
+from constants import ApiErrorCodes
 from routes import EndpointsMapper
 from data_access.auth import users, ad_placers, ad_providers
 
@@ -51,8 +55,7 @@ class AdPlacerTestCase(BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert 'errors' in body
-        assert 'email' in body['errors']
+        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -69,10 +72,8 @@ class AdPlacerTestCase(BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert 'errors' in body
-        assert 'email' in body['errors']
-        assert 'website' in body['errors']
-        assert 'visitors_per_day_count' in body['errors']
+        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR,
+                                     'email', 'website', 'visitors_per_day_count')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -95,8 +96,7 @@ class AdPlacerTestCase(BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert 'errors' in body
-        assert 'email' in body['errors']
+        self.check_400_response_body(body, ApiErrorCodes.EMAIL_ALREADY_IN_USE, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -137,8 +137,7 @@ class AdProviderTestCase(BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert 'errors' in body
-        assert 'password' in body['errors']
+        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'password')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -154,8 +153,7 @@ class AdProviderTestCase(BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert 'errors' in body
-        assert 'email' in body['errors']
+        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -173,10 +171,87 @@ class AdProviderTestCase(BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert 'errors' in body
-        assert 'email' in body['errors']
+        self.check_400_response_body(body, ApiErrorCodes.EMAIL_ALREADY_IN_USE, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
             result = await rp.fetchall()
             assert len(result) == 1
+
+
+class LoginTestCase(BaseTestCase):
+
+    @unittest_run_loop
+    async def test_logs_in_ad_provider(self):
+        data = {'email': 'valid@email.com', 'password': 'somepassword'}
+        await (await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))).release()
+
+        data['user_type'] = UserTypes.AD_PROVIDER
+        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+
+        assert response.status == StatusCodes.OK
+        body = await response.json()
+        await response.release()
+
+        assert 'token' in body
+        data = jwt.decode(body['token'], settings.JWT_SECRET, settings.JWT_ALGORITHM)
+        assert 'user_id' in data
+        assert 'type' in data
+        assert data['type'] == UserTypes.AD_PROVIDER
+
+    @unittest_run_loop
+    async def test_logs_in_ad_placer(self):
+        signup_data = {
+            'email': 'valid@email.com',
+            'website': 'http://www.some.com',
+            'password': 'somepassword',
+            'visitors_per_day_count': 10
+        }
+        await (await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(signup_data))).release()
+
+        data = {
+            'email': 'valid@email.com',
+            'password': 'somepassword',
+            'user_type': UserTypes.AD_PLACER
+        }
+        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+
+        assert response.status == StatusCodes.OK
+        body = await response.json()
+        await response.release()
+
+        assert 'token' in body
+        data = jwt.decode(body['token'], settings.JWT_SECRET, settings.JWT_ALGORITHM)
+        assert 'user_id' in data
+        assert 'type' in data
+        assert data['type'] == UserTypes.AD_PLACER
+
+    @unittest_run_loop
+    async def test_returns_400_when_password_is_invalid(self):
+        data = {'email': 'valid@email.com', 'password': 'somepassword'}
+        await (await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))).release()
+
+        data['password'] = 'dfgjdfkgj'
+        data['user_type'] = UserTypes.AD_PROVIDER
+        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+
+        assert response.status == StatusCodes.BAD_REQUEST
+        body = await response.json()
+        await response.release()
+
+        self.check_400_response_body(body, ApiErrorCodes.PASSWORD_IS_INVALID, 'password')
+
+    @unittest_run_loop
+    async def test_returns_400_when_email_does_not_exist(self):
+        data = {'email': 'valid@email.com', 'password': 'somepassword'}
+        await (await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))).release()
+
+        data['email'] = 'someemail@gmail.com'
+        data['user_type'] = UserTypes.AD_PROVIDER
+        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+
+        assert response.status == StatusCodes.BAD_REQUEST
+        body = await response.json()
+        await response.release()
+
+        self.check_400_response_body(body, ApiErrorCodes.USER_DOES_NOT_EXIST, 'email')
