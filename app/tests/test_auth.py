@@ -6,7 +6,7 @@ from extensions.testing import BaseTestCase
 from extensions.http import StatusCodes
 from extensions.user_model import UserTypes
 from settings import settings
-from constants import ApiErrorCodes
+from constants import ApiErrorCodes, UserTypes
 from routes import EndpointsMapper
 from data_access.auth import users, ad_placers, ad_providers
 
@@ -255,3 +255,49 @@ class LoginTestCase(BaseTestCase):
         await response.release()
 
         self.check_400_response_body(body, ApiErrorCodes.USER_DOES_NOT_EXIST, 'email')
+
+
+class GetAccountDataTestCase(BaseTestCase):
+
+    @unittest_run_loop
+    async def test_returns_data_to_authed_user(self):
+        signup_data = {
+            'email': 'valid@email.com',
+            'first_name': 'Andrew',
+            'last_name': 'Popov',
+            'website': 'http://www.some.com',
+            'password': 'somepassword',
+            'visitors_per_day_count': 10
+        }
+        response = await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(signup_data))
+        token = (await response.json())['token']
+        await response.release()
+
+        response = await self.client.get(EndpointsMapper.GET_USER_DATA, headers={settings.JWT_HEADER: token})
+
+        assert response.status == StatusCodes.OK
+        body = await response.json()
+        await response.release()
+
+        assert body['email'] == signup_data['email']
+        assert body['first_name'] == signup_data['first_name']
+        assert body['last_name'] == signup_data['last_name']
+        assert body['website'] == signup_data['website']
+        assert body['visitors_per_day_count'] == signup_data['visitors_per_day_count']
+
+    @unittest_run_loop
+    async def test_returns_401_to_anon(self):
+        response = await self.client.get(EndpointsMapper.GET_USER_DATA)
+
+        assert response.status == StatusCodes.UNAUTHORIZED
+        await response.release()
+
+    @unittest_run_loop
+    async def test_returns_400_when_token_is_invalid(self):
+        response = await self.client.get(EndpointsMapper.GET_USER_DATA, headers={settings.JWT_HEADER: 'wrong-token'})
+
+        assert response.status == StatusCodes.BAD_REQUEST
+        body = await response.json()
+        await response.release()
+
+        self.check_400_response_body(body, ApiErrorCodes.AUTH_TOKEN_IS_INVALID, 'token')

@@ -1,5 +1,6 @@
+from aiohttp.web import Request, Response
 from extensions.controllers import bind_controller
-from extensions.decorators import validate_body_json
+from extensions.decorators import validate_body_json, auth_required
 from extensions.http import HTTPCreated, HTTPBadRequest, HTTPSuccess
 from controllers.auth import AuthController
 from validators.auth import AdPlacerSignupValidator, AdProviderSignupValidator, LoginValidator
@@ -9,7 +10,7 @@ from constants import ApiErrorCodes
 
 @validate_body_json(AdPlacerSignupValidator)
 @bind_controller(AuthController)
-async def signup_ad_placer(request, controller):
+async def signup_ad_placer(request: Request, controller: AuthController) -> Response:
     try:
         token = await controller.signup_ad_placer(**request.data)
         return HTTPCreated(data={'token': token})
@@ -21,7 +22,7 @@ async def signup_ad_placer(request, controller):
 
 @validate_body_json(AdProviderSignupValidator)
 @bind_controller(AuthController)
-async def signup_ad_provider(request, controller):
+async def signup_ad_provider(request: Request, controller: AuthController) -> Response:
     try:
         token = await controller.signup_ad_provider(**request.data)
         return HTTPCreated(data={'token': token})
@@ -31,7 +32,7 @@ async def signup_ad_provider(request, controller):
 
 @validate_body_json(LoginValidator)
 @bind_controller(AuthController)
-async def login(request, controller):
+async def login(request: Request, controller: AuthController) -> Response:
     try:
         token = await controller.login(**request.data)
         return HTTPSuccess(data={'token': token})
@@ -39,3 +40,8 @@ async def login(request, controller):
         return HTTPBadRequest(errors={'email': [e.message]}, code=ApiErrorCodes.USER_DOES_NOT_EXIST)
     except InvalidPassword as e:
         return HTTPBadRequest(errors={'password': [e.message]}, code=ApiErrorCodes.PASSWORD_IS_INVALID)
+
+
+@auth_required
+async def get_user_data(request: Request):
+    return HTTPSuccess(data=request.user.as_dict())

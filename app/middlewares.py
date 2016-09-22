@@ -1,6 +1,10 @@
 import time
 import logging
+import jwt
 from settings import settings
+from constants import ApiErrorCodes
+from extensions.user_model import User
+from extensions.http import HTTPBadRequest
 
 
 def get_milliseconds_timestamp():
@@ -25,10 +29,24 @@ async def logging_middleware(app, handler):
 
 async def db_middleware(app, handler):
     async def middleware_wrapper(request):
-        request.db = app._db
+        request.db = app.db
         return await handler(request)
     return middleware_wrapper
 
 
-middlewares = (db_middleware, logging_middleware,)
-test_middlewares = (db_middleware,)
+async def auth_middleware(app, handler):
+    async def middleware_wrapper(request):
+        request.user = None
+        token = request.headers.get(settings.JWT_HEADER, None)
+        if token:
+            try:
+                payload = jwt.decode(token, key=settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+            except (jwt.DecodeError, jwt.ExpiredSignatureError):
+                return HTTPBadRequest(ApiErrorCodes.AUTH_TOKEN_IS_INVALID, errors={'token': 'Your token is invalid'})
+            request.user = await User.create(db=app.db, token_data=payload)
+        return await handler(request)
+    return middleware_wrapper
+
+
+middlewares = (db_middleware, logging_middleware, auth_middleware)
+test_middlewares = (db_middleware, auth_middleware)

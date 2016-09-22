@@ -1,6 +1,6 @@
 import json
 from schematics.exceptions import ValidationError, ModelConversionError
-from extensions.http import HTTPBadRequest
+from extensions.http import HTTPBadRequest, HTTPUnauthorized
 from constants import ApiErrorCodes
 
 
@@ -19,3 +19,11 @@ def validate_body_json(validator):
             return await handler(request, *args)
         return wrapper
     return decorator
+
+
+def auth_required(handler):
+    async def wrapper(request, *args):
+        if request.user is None:
+            return HTTPUnauthorized()
+        return await handler(request, *args)
+    return wrapper

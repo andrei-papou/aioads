@@ -5,18 +5,19 @@ from aiopg.sa import create_engine
 from middlewares import middlewares
 from settings import settings
 from routes import routes
+from extensions.app import App
 
 
 def init_app(loop):
-    app = web.Application(middlewares=middlewares)
-
-    for route in routes:
-        app.router.add_route(*route)
-
-    app._db = loop.run_until_complete(create_engine(
+    _db = loop.run_until_complete(create_engine(
         user=settings.DB_USER, database=settings.DB_NAME,
         host=settings.DB_HOST, password=settings.DB_PASS
     ))
+
+    app = App(db=_db, middlewares=middlewares)
+
+    for route in routes:
+        app.router.add_route(*route)
 
     logger = logging.getLogger(settings.LOGGER_NAME)
     logger.setLevel(settings.LOGGER_LEVEL)

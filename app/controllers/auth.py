@@ -3,7 +3,7 @@ import bcrypt
 from psycopg2 import IntegrityError
 from settings import settings
 from exceptions.auth import EmailAlreadyInUse, WebsiteAlreadyRegistered, UserDoesNotExist, InvalidPassword
-from extensions.user_model import UserTypes
+from constants import UserTypes
 from extensions.controllers import BaseController
 from data_access.auth import AuthQueryFactory as AuthQF
 

@@ -1,7 +1,6 @@
 from schematics.models import Model
 from schematics.types import StringType, IntType
-from extensions.user_model import UserTypes
-
+from constants import UserTypes
 
 EMAIL_REGEX = r'[a-zA-Z0-9\._-]+@[a-zA-Z0-9\._-]+\.[a-zA-Z]+$'
 WEBSITE_REGEX = r'https?://www\.[a-zA-Z0-9._-]+\.[a-z]+$'

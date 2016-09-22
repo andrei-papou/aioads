@@ -1,10 +1,10 @@
-from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase
 from aiopg.sa import create_engine
 from sqlalchemy import text
 from middlewares import test_middlewares
 from routes import routes
 from settings import settings
+from .app import App
 
 
 class BaseTestCase(AioHTTPTestCase):
@@ -16,17 +16,18 @@ class BaseTestCase(AioHTTPTestCase):
         pass
 
     def get_app(self, loop):
-        app = web.Application(loop=loop, middlewares=test_middlewares)
+        _db = loop.run_until_complete(create_engine(
+            user=settings.TEST_DB_USER, database=settings.TEST_DB_NAME,
+            host=settings.TEST_DB_HOST, password=settings.TEST_DB_PASS,
+            loop=loop
+        ))
+
+        app = App(db=_db, loop=loop, middlewares=test_middlewares)
 
         for route in routes:
             app.router.add_route(*route)
 
-        app._db = app.loop.run_until_complete(create_engine(
-            user=settings.TEST_DB_USER, database=settings.TEST_DB_NAME,
-            host=settings.TEST_DB_HOST, password=settings.TEST_DB_PASS,
-            loop=app.loop
-        ))
-        self.test_db_eng = app._db
+        self.test_db_eng = app.db
 
         return app
 
