@@ -23,3 +23,13 @@ class UserTypes:
     @classmethod
     def as_choices(cls):
         return [cls.AD_PROVIDER, cls.AD_PLACER]
+
+
+class AdvertOrderRanks:
+    LOW = 1
+    MIDDLE = 2
+    HIGH = 3
+
+    @classmethod
+    def as_choices(cls):
+        return [cls.LOW, cls.MIDDLE, cls.HIGH]

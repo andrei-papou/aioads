@@ -7,6 +7,7 @@ from data_access import metadata
 # import all the tables whose changes need to be caught by --autogenerate
 
 from data_access.auth import users, ad_placers, ad_providers
+from data_access.advert_orders import advert_orders
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -273,7 +273,7 @@ class GetAccountDataTestCase(BaseTestCase):
         token = (await response.json())['token']
         await response.release()
 
-        response = await self.client.get(EndpointsMapper.GET_USER_DATA, headers={settings.JWT_HEADER: token})
+        response = await self.client.get(EndpointsMapper.USER_DATA, headers={settings.JWT_HEADER: token})
 
         assert response.status == StatusCodes.OK
         body = await response.json()
@@ -287,14 +287,14 @@ class GetAccountDataTestCase(BaseTestCase):
 
     @unittest_run_loop
     async def test_returns_401_to_anon(self):
-        response = await self.client.get(EndpointsMapper.GET_USER_DATA)
+        response = await self.client.get(EndpointsMapper.USER_DATA)
 
         assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
 
     @unittest_run_loop
     async def test_returns_400_when_token_is_invalid(self):
-        response = await self.client.get(EndpointsMapper.GET_USER_DATA, headers={settings.JWT_HEADER: 'wrong-token'})
+        response = await self.client.get(EndpointsMapper.USER_DATA, headers={settings.JWT_HEADER: 'wrong-token'})
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
