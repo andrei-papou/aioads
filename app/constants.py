@@ -9,6 +9,7 @@ class ApiErrorCodes:
     USER_DOES_NOT_EXIST = 5
     PASSWORD_IS_INVALID = 6
     AUTH_TOKEN_IS_INVALID = 7
+    AD_ORDER_FOR_LINK_EXISTS = 8
 
 
 _config = ConfigParser()

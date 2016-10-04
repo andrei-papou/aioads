@@ -40,3 +40,11 @@ class User:
         else:
             base['is_locked'] = self.specific_data['is_locked']
         return base
+
+    @property
+    def is_ad_provider(self):
+        return self.type == UserTypes.AD_PROVIDER
+
+    @property
+    def is_ad_placer(self):
+        return self.type == UserTypes.AD_PLACER

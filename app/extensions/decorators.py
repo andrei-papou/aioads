@@ -1,7 +1,7 @@
 import json
 from schematics.exceptions import ValidationError, ModelConversionError
-from extensions.http import HTTPBadRequest, HTTPUnauthorized
-from constants import ApiErrorCodes
+from extensions.http import HTTPBadRequest, HTTPUnauthorized, HTTPForbidden
+from constants import ApiErrorCodes, UserTypes
 
 
 def validate_body_json(validator):
@@ -25,5 +25,15 @@ def auth_required(handler):
     async def wrapper(request, *args):
         if request.user is None:
             return HTTPUnauthorized()
+        return await handler(request, *args)
+    return wrapper
+
+
+def ad_provider_only(handler):
+    async def wrapper(request, *args):
+        if request.user is None:
+            return HTTPUnauthorized()
+        if not request.user.is_ad_provider:
+            return HTTPForbidden()
         return await handler(request, *args)
     return wrapper
