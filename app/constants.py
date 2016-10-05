@@ -10,6 +10,9 @@ class ApiErrorCodes:
     PASSWORD_IS_INVALID = 6
     AUTH_TOKEN_IS_INVALID = 7
     AD_ORDER_FOR_LINK_EXISTS = 8
+    NOT_AD_PROVIDER = 9
+    NOT_AD_PLACER = 10
+    ANOTHER_USER_ORDER_UPDATE_ATTEMPT = 11
 
 
 _config = ConfigParser()

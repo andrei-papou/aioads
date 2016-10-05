@@ -4,7 +4,9 @@ from extensions.serializers import serialize
 from extensions.user_model import User
 from data_access.advert_orders import AdvertOrdersQueryFactory as AdvertOrdersQF
 from serialization.advert_orders import list_advert_orders_schema
-from exceptions.advert_orders import AdvertOrderForSuchLinkAlreadyExists
+from exceptions.advert_orders import (
+    AdvertOrderForSuchLinkAlreadyExists, AnotherUserOrderUpdateAttempt, AdvertOrderDoesNotExist
+)
 
 
 class AdvertOrdersController(BaseController):
@@ -24,3 +26,27 @@ class AdvertOrdersController(BaseController):
             except IntegrityError:
                 raise AdvertOrderForSuchLinkAlreadyExists()
         return {'id': order_id}
+
+    async def update_order(self, oid: int, user: User, follow_url_link: str = None,
+                           heading_picture: str = None, description: str = None) -> dict:
+        data = {
+            'follow_url_link': follow_url_link,
+            'heading_picture': heading_picture,
+            'description': description
+        }
+        select_order_query = AdvertOrdersQF.get_advert_order_by_id(oid)
+        update_order_query = AdvertOrdersQF.update_advert_order(oid, **data)
+
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(select_order_query)
+            order = await rp.first()
+
+            if order.owner_id != user.specific_data['specific_id']:
+                raise AnotherUserOrderUpdateAttempt()
+
+            rp = await conn.execute(update_order_query)
+
+        if not rp.rowcount:
+            raise AdvertOrderDoesNotExist()
+
+        return {'id': oid}

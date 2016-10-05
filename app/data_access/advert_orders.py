@@ -31,7 +31,8 @@ class AdvertOrdersQueryFactory:
             advert_orders.c.id,
             advert_orders.c.heading_picture,
             advert_orders.c.follow_url_link,
-            advert_orders.c.description
+            advert_orders.c.description,
+            advert_orders.c.owner_id
         ]
         return sa.select(columns).where(advert_orders.c.id == order_id)
 

@@ -2,7 +2,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 from aiopg.sa import create_engine
 from sqlalchemy import text
 from middlewares import test_middlewares
-from routes import routes
+from routes import route_config
 from settings import settings
 from .app import App
 
@@ -22,10 +22,7 @@ class BaseTestCase(AioHTTPTestCase):
             loop=loop
         ))
 
-        app = App(db=_db, loop=loop, middlewares=test_middlewares)
-
-        for route in routes:
-            app.router.add_route(*route)
+        app = App(db=_db, loop=loop, route_config=route_config, middlewares=test_middlewares)
 
         self.test_db_eng = app.db
 
@@ -52,7 +49,7 @@ class BaseTestCase(AioHTTPTestCase):
         self.loop.run_until_complete(self.reset_db())
         super().tearDown()
 
-    def check_400_response_body(self, body, code, *invalid_fields):
+    def check_error_response_body(self, body, code, *invalid_fields):
         assert 'code' in body
         assert body['code'] == code
         assert 'errors' in body

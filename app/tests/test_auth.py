@@ -21,7 +21,8 @@ class AdPlacerTestCase(BaseTestCase):
             'website': 'http://www.somewebsite.com',
             'visitors_per_day_count': 120
         }
-        response = await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(data))
+        url = self.app.get_url(EndpointsMapper.AD_PLACER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(data))
 
         assert response.status == StatusCodes.CREATED
         body = await response.json()
@@ -49,13 +50,14 @@ class AdPlacerTestCase(BaseTestCase):
             'website': 'http://www.somewebsite.com',
             'visitors_per_day_count': 120
         }
-        response =  await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(data))
+        url = self.app.get_url(EndpointsMapper.AD_PLACER_SIGNUP)
+        response =  await self.client.post(url, data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'email')
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -66,13 +68,14 @@ class AdPlacerTestCase(BaseTestCase):
     @unittest_run_loop
     async def test_returns_400_when_field_is_missing(self):
         data = {'password': 'homm1994'}
-        response = await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(data))
+        url = self.app.get_url(EndpointsMapper.AD_PLACER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR,
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR,
                                      'email', 'website', 'visitors_per_day_count')
 
         async with self.test_db_eng.acquire() as conn:
@@ -89,14 +92,15 @@ class AdPlacerTestCase(BaseTestCase):
             'website': 'http://www.somewebsite.com',
             'visitors_per_day_count': 120
         }
-        await (await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(data))).release()
-        response = await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(data))
+        url = self.app.get_url(EndpointsMapper.AD_PLACER_SIGNUP)
+        await (await self.client.post(url, data=json.dumps(data))).release()
+        response = await self.client.post(url, data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.EMAIL_ALREADY_IN_USE, 'email')
+        self.check_error_response_body(body, ApiErrorCodes.EMAIL_ALREADY_IN_USE, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -109,7 +113,8 @@ class AdProviderTestCase(BaseTestCase):
     @unittest_run_loop
     async def test_creates_ad_provider_on_valid_post(self):
         data = {'email': 'popow@gmail.net', 'password': 'somepass'}
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(data))
 
         assert response.status == StatusCodes.CREATED
         body = await response.json()
@@ -131,13 +136,14 @@ class AdProviderTestCase(BaseTestCase):
     @unittest_run_loop
     async def test_returns_400_when_data_is_invalid(self):
         data = {'email': 'popow@gmail.com', 'password': 'a'}
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'password')
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'password')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -147,13 +153,14 @@ class AdProviderTestCase(BaseTestCase):
     @unittest_run_loop
     async def test_returns_400_when_field_is_missing(self):
         data = {'password': 'somepassword'}
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'email')
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -164,14 +171,15 @@ class AdProviderTestCase(BaseTestCase):
     async def test_returns_400_when_email_is_already_in_use(self):
         data = {'email': 'valid@email.com', 'password': 'somepassword'}
         json_data = json.dumps(data)
-        await (await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json_data)).release()
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json_data)
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        await (await self.client.post(url, data=json_data)).release()
+        response = await self.client.post(url, data=json_data)
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.EMAIL_ALREADY_IN_USE, 'email')
+        self.check_error_response_body(body, ApiErrorCodes.EMAIL_ALREADY_IN_USE, 'email')
 
         async with self.test_db_eng.acquire() as conn:
             rp = await conn.execute(select([users]))
@@ -184,10 +192,11 @@ class LoginTestCase(BaseTestCase):
     @unittest_run_loop
     async def test_logs_in_ad_provider(self):
         data = {'email': 'valid@email.com', 'password': 'somepassword'}
-        await (await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))).release()
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        await (await self.client.post(url, data=json.dumps(data))).release()
 
         data['user_type'] = UserTypes.AD_PROVIDER
-        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.LOGIN), data=json.dumps(data))
 
         assert response.status == StatusCodes.OK
         body = await response.json()
@@ -207,14 +216,15 @@ class LoginTestCase(BaseTestCase):
             'password': 'somepassword',
             'visitors_per_day_count': 10
         }
-        await (await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(signup_data))).release()
+        url = self.app.get_url(EndpointsMapper.AD_PLACER_SIGNUP)
+        await (await self.client.post(url, data=json.dumps(signup_data))).release()
 
         data = {
             'email': 'valid@email.com',
             'password': 'somepassword',
             'user_type': UserTypes.AD_PLACER
         }
-        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.LOGIN), data=json.dumps(data))
 
         assert response.status == StatusCodes.OK
         body = await response.json()
@@ -229,32 +239,34 @@ class LoginTestCase(BaseTestCase):
     @unittest_run_loop
     async def test_returns_400_when_password_is_invalid(self):
         data = {'email': 'valid@email.com', 'password': 'somepassword'}
-        await (await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))).release()
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        await (await self.client.post(url, data=json.dumps(data))).release()
 
         data['password'] = 'dfgjdfkgj'
         data['user_type'] = UserTypes.AD_PROVIDER
-        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.LOGIN), data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.PASSWORD_IS_INVALID, 'password')
+        self.check_error_response_body(body, ApiErrorCodes.PASSWORD_IS_INVALID, 'password')
 
     @unittest_run_loop
     async def test_returns_400_when_email_does_not_exist(self):
         data = {'email': 'valid@email.com', 'password': 'somepassword'}
-        await (await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(data))).release()
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        await (await self.client.post(url, data=json.dumps(data))).release()
 
         data['email'] = 'someemail@gmail.com'
         data['user_type'] = UserTypes.AD_PROVIDER
-        response = await self.client.post(EndpointsMapper.LOGIN, data=json.dumps(data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.LOGIN), data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.USER_DOES_NOT_EXIST, 'email')
+        self.check_error_response_body(body, ApiErrorCodes.USER_DOES_NOT_EXIST, 'email')
 
 
 class GetAccountDataTestCase(BaseTestCase):
@@ -269,11 +281,13 @@ class GetAccountDataTestCase(BaseTestCase):
             'password': 'somepassword',
             'visitors_per_day_count': 10
         }
-        response = await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(signup_data))
+        url = self.app.get_url(EndpointsMapper.AD_PLACER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(signup_data))
         token = (await response.json())['token']
         await response.release()
 
-        response = await self.client.get(EndpointsMapper.USER_DATA, headers={settings.JWT_HEADER: token})
+        url = self.app.get_url(EndpointsMapper.USER_DATA)
+        response = await self.client.get(url, headers={settings.JWT_HEADER: token})
 
         assert response.status == StatusCodes.OK
         body = await response.json()
@@ -287,17 +301,18 @@ class GetAccountDataTestCase(BaseTestCase):
 
     @unittest_run_loop
     async def test_returns_401_to_anon(self):
-        response = await self.client.get(EndpointsMapper.USER_DATA)
+        response = await self.client.get(self.app.get_url(EndpointsMapper.USER_DATA))
 
         assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
 
     @unittest_run_loop
     async def test_returns_400_when_token_is_invalid(self):
-        response = await self.client.get(EndpointsMapper.USER_DATA, headers={settings.JWT_HEADER: 'wrong-token'})
+        url = self.app.get_url(EndpointsMapper.USER_DATA)
+        response = await self.client.get(url, headers={settings.JWT_HEADER: 'wrong-token'})
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.AUTH_TOKEN_IS_INVALID, 'token')
+        self.check_error_response_body(body, ApiErrorCodes.AUTH_TOKEN_IS_INVALID, 'token')

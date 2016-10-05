@@ -10,6 +10,7 @@ class StatusCodes:
     BAD_REQUEST = 400
     UNAUTHORIZED = 401
     FORBIDDEN = 403
+    NOT_FOUND = 404
     METHOD_NOT_ALLOWED = 405
 
 
@@ -40,6 +41,18 @@ class JSONBodyResponse(StatusCodeResponse):
         super(JSONBodyResponse, self).__init__(**kwargs)
 
 
+class ApiErrorCodeResponse(JSONBodyResponse):
+
+    def __init__(self, code, *args, errors=None, **kwargs):
+        errors = errors or {}
+        kwargs['data'] = {
+            'code': code,
+            'message': ERROR_MESSAGES[str(code)],
+            'errors': errors
+        }
+        super().__init__(*args, **kwargs)
+
+
 class HTTPSuccess(JSONBodyResponse):
     status_code = StatusCodes.OK
 
@@ -52,25 +65,20 @@ class HTTPNoContent(JSONBodyResponse):
     status_code = StatusCodes.NO_CONTENT
 
 
-class HTTPBadRequest(JSONBodyResponse):
+class HTTPBadRequest(ApiErrorCodeResponse):
     status_code = StatusCodes.BAD_REQUEST
-
-    def __init__(self, code, *args, errors=None, **kwargs):
-        errors = errors or {}
-        kwargs['data'] = {
-            'code': code,
-            'message': ERROR_MESSAGES[str(code)],
-            'errors': errors
-        }
-        super().__init__(*args, **kwargs)
 
 
 class HTTPUnauthorized(JSONBodyResponse):
     status_code = StatusCodes.UNAUTHORIZED
 
 
-class HTTPForbidden(JSONBodyResponse):
+class HTTPForbidden(ApiErrorCodeResponse):
     status_code = StatusCodes.FORBIDDEN
+
+
+class HTTPNotFound(JSONBodyResponse):
+    status_code = StatusCodes.NOT_FOUND
 
 
 class HTTPMethodNotAllowed(JSONBodyResponse):

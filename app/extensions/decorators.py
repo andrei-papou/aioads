@@ -1,7 +1,7 @@
 import json
 from schematics.exceptions import ValidationError, ModelConversionError
 from extensions.http import HTTPBadRequest, HTTPUnauthorized, HTTPForbidden
-from constants import ApiErrorCodes, UserTypes
+from constants import ApiErrorCodes
 
 
 def validate_body_json(validator):
@@ -34,6 +34,6 @@ def ad_provider_only(handler):
         if request.user is None:
             return HTTPUnauthorized()
         if not request.user.is_ad_provider:
-            return HTTPForbidden()
+            return HTTPForbidden(code=ApiErrorCodes.NOT_AD_PROVIDER, errors={'general': 'You are not an ad provider'})
         return await handler(request, *args)
     return wrapper

@@ -4,7 +4,7 @@ from aiohttp import web
 from aiopg.sa import create_engine
 from middlewares import middlewares
 from settings import settings
-from routes import routes
+from routes import route_config
 from extensions.app import App
 
 
@@ -14,10 +14,7 @@ def init_app(loop):
         host=settings.DB_HOST, password=settings.DB_PASS
     ))
 
-    app = App(db=_db, middlewares=middlewares)
-
-    for route in routes:
-        app.router.add_route(*route)
+    app = App(db=_db, route_config=route_config, middlewares=middlewares)
 
     logger = logging.getLogger(settings.LOGGER_NAME)
     logger.setLevel(settings.LOGGER_LEVEL)

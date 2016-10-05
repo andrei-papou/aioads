@@ -18,7 +18,8 @@ class GetAdvertOrdersTestCase(BaseTestCase):
             'email': 'popow.andrej2009@yandex.ru',
             'password': 'homm1994'
         }
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(user_data))
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(user_data))
         token = (await response.json())['token']
         owner_id = jwt.decode(token, key=settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])['user_id']
         data = [
@@ -48,7 +49,8 @@ class GetAdvertOrdersTestCase(BaseTestCase):
             for order in data:
                 await conn.execute(insert(advert_orders).values(**order))
 
-        response = await self.client.get(EndpointsMapper.ADVERT_ORDERS, headers={settings.JWT_HEADER: token})
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDERS)
+        response = await self.client.get(url, headers={settings.JWT_HEADER: token})
 
         assert response.status == StatusCodes.OK
         body = await response.json()
@@ -67,7 +69,7 @@ class GetAdvertOrdersTestCase(BaseTestCase):
 
     @unittest_run_loop
     async def test_returns_401_when_anon(self):
-        response = await self.client.get(EndpointsMapper.ADVERT_ORDERS)
+        response = await self.client.get(self.app.get_url(EndpointsMapper.ADVERT_ORDERS))
         assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
 
@@ -80,7 +82,8 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'email': 'popow.andrej2009@yandex.ru',
             'password': 'homm1994'
         }
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(user_data))
+        url = self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP)
+        response = await self.client.post(url, data=json.dumps(user_data))
         token = (await response.json())['token']
 
         order_data = {
@@ -88,7 +91,7 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'heading_picture': 'https://www.cdn.class.com/promo_cover_image',
             'description': 'Some description text'
         }
-        response = await self.client.post(EndpointsMapper.ADVERT_ORDERS,
+        response = await self.client.post(self.app.get_url(EndpointsMapper.ADVERT_ORDERS),
                                           headers={settings.JWT_HEADER: token},
                                           data=json.dumps(order_data))
         assert response.status == StatusCodes.CREATED
@@ -110,7 +113,8 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'email': 'popow.andrej2009@yandex.ru',
             'password': 'homm1994'
         }
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(user_data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP),
+                                          data=json.dumps(user_data))
         token = (await response.json())['token']
 
         order_data = {
@@ -118,14 +122,14 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'heading_picture': 'https://www.cdn.class.com/promo_cover_image',
             'description': 'Some description text'
         }
-        response = await self.client.post(EndpointsMapper.ADVERT_ORDERS,
+        response = await self.client.post(self.app.get_url(EndpointsMapper.ADVERT_ORDERS),
                                           headers={settings.JWT_HEADER: token},
                                           data=json.dumps(order_data))
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'follow_url_link')
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'follow_url_link')
 
     @unittest_run_loop
     async def test_returns_400_when_field_is_missing(self):
@@ -133,21 +137,22 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'email': 'popow.andrej2009@yandex.ru',
             'password': 'homm1994'
         }
-        response = await self.client.post(EndpointsMapper.AD_PROVIDER_SIGNUP, data=json.dumps(user_data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP),
+                                          data=json.dumps(user_data))
         token = (await response.json())['token']
 
         order_data = {
             'heading_picture': 'https://www.cdn.class.com/promo_cover_image',
             'description': 'Some description text'
         }
-        response = await self.client.post(EndpointsMapper.ADVERT_ORDERS,
+        response = await self.client.post(self.app.get_url(EndpointsMapper.ADVERT_ORDERS),
                                           headers={settings.JWT_HEADER: token},
                                           data=json.dumps(order_data))
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
         await response.release()
 
-        self.check_400_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'follow_url_link')
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'follow_url_link')
 
     @unittest_run_loop
     async def test_returns_401_to_anon(self):
@@ -156,7 +161,8 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'heading_picture': 'https://www.cdn.class.com/promo_cover_image',
             'description': 'Some description text'
         }
-        response = await self.client.post(EndpointsMapper.ADVERT_ORDERS, data=json.dumps(order_data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.ADVERT_ORDERS),
+                                          data=json.dumps(order_data))
         assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
 
@@ -168,7 +174,8 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'website': 'http://www.somewebsite.com',
             'visitors_per_day_count': 120
         }
-        response = await self.client.post(EndpointsMapper.AD_PLACER_SIGNUP, data=json.dumps(user_data))
+        response = await self.client.post(self.app.get_url(EndpointsMapper.AD_PLACER_SIGNUP),
+                                          data=json.dumps(user_data))
         token = (await response.json())['token']
 
         order_data = {
@@ -176,8 +183,97 @@ class CreateAdvertOrderTestCase(BaseTestCase):
             'heading_picture': 'https://www.cdn.class.com/promo_cover_image',
             'description': 'Some description text'
         }
-        response = await self.client.post(EndpointsMapper.ADVERT_ORDERS,
+        response = await self.client.post(self.app.get_url(EndpointsMapper.ADVERT_ORDERS),
                                           headers={settings.JWT_HEADER: token},
                                           data=json.dumps(order_data))
         assert response.status == StatusCodes.FORBIDDEN
         await response.release()
+
+
+class UpdateAdvertOrderTestCase(BaseTestCase):
+
+    async def set_up(self):
+        user_data = {
+            'email': 'popow.andrej2009@yandex.ru',
+            'password': 'homm1994'
+        }
+        response = await self.client.post(self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP),
+                                          data=json.dumps(user_data))
+        self.headers = {settings.JWT_HEADER: (await response.json())['token']}
+        self.data = {
+            'follow_url_link': 'https://www.class.com/index',
+            'heading_picture': 'https://www.cdn.class.com/promo_cover_image',
+            'description': 'Some description text'
+        }
+        response = await self.client.post(self.app.get_url(EndpointsMapper.ADVERT_ORDERS),
+                                          data=json.dumps(self.data), headers=self.headers)
+        self.oid = (await response.json())['id']
+
+    @unittest_run_loop
+    async def test_updates_order_on_owner_valid_post(self):
+        data = {'heading_picture': 'https://www.cdn.class.com/new_promo_cover_image'}
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+        response = await self.client.patch(url, headers=self.headers, data=json.dumps(data))
+
+        assert response.status == StatusCodes.OK
+        await response.release()
+
+        select_order_query = AdOrdersQF.get_advert_order_by_id(self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            rp = await conn.execute(select_order_query)
+            db_data = await rp.first()
+
+        assert db_data['heading_picture'] == data['heading_picture']
+
+    @unittest_run_loop
+    async def test_returns_400_on_invalid_owner_post(self):
+        data = {'heading_picture': 'h'}
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+        response = await self.client.patch(url, headers=self.headers, data=json.dumps(data))
+
+        assert response.status == StatusCodes.BAD_REQUEST
+        body = await response.json()
+        await response.release()
+
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'heading_picture')
+
+    @unittest_run_loop
+    async def test_returns_403_on_another_user_post(self):
+        user_data = {
+            'email': 'andrei1111@tut.by',
+            'password': 'homm1994'
+        }
+        response = await self.client.post(path=self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP),
+                                          data=json.dumps(user_data))
+        headers = {settings.JWT_HEADER: (await response.json())['token']}
+        data = {'heading_picture': 'https://www.cdn.class.com/new_promo_cover_image'}
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+        response = await self.client.patch(url, headers=headers, data=json.dumps(data))
+
+        assert response.status == StatusCodes.FORBIDDEN
+        body = await response.json()
+        await response.release()
+
+        self.check_error_response_body(body, ApiErrorCodes.ANOTHER_USER_ORDER_UPDATE_ATTEMPT, 'order_id')
+
+        select_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            rp = await conn.execute(select_order_query)
+            db_data = await rp.first()
+
+        assert db_data['heading_picture'] == self.data['heading_picture']
+
+    @unittest_run_loop
+    async def test_returns_401_to_anon(self):
+        data = {'heading_picture': 'https://www.cdn.class.com/new_promo_cover_image'}
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+        response = await self.client.patch(url, data=json.dumps(data))
+
+        assert response.status == StatusCodes.UNAUTHORIZED
+
+        select_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            rp = await conn.execute(select_order_query)
+            db_data = await rp.first()
+
+        assert db_data['heading_picture'] == self.data['heading_picture']
