@@ -5,7 +5,8 @@ from extensions.user_model import User
 from data_access.advert_orders import AdvertOrdersQueryFactory as AdvertOrdersQF
 from serialization.advert_orders import list_advert_orders_schema
 from exceptions.advert_orders import (
-    AdvertOrderForSuchLinkAlreadyExists, AnotherUserOrderUpdateAttempt, AdvertOrderDoesNotExist
+    AdvertOrderForSuchLinkAlreadyExists, AnotherUserOrderUpdateAttempt, AdvertOrderDoesNotExist,
+    AnotherUserOrderDeleteAttempt
 )
 
 
@@ -41,12 +42,28 @@ class AdvertOrdersController(BaseController):
             rp = await conn.execute(select_order_query)
             order = await rp.first()
 
+            if order is None:
+                raise AdvertOrderDoesNotExist()
+
             if order.owner_id != user.specific_data['specific_id']:
                 raise AnotherUserOrderUpdateAttempt()
 
-            rp = await conn.execute(update_order_query)
-
-        if not rp.rowcount:
-            raise AdvertOrderDoesNotExist()
+            await conn.execute(update_order_query)
 
         return {'id': oid}
+
+    async def delete_order(self, oid: int, user: User) -> None:
+        select_order_query = AdvertOrdersQF.get_advert_order_by_id(oid)
+        delete_order_query = AdvertOrdersQF.delete_advert_order(oid)
+
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(select_order_query)
+            order_data = await rp.first()
+
+            if order_data is None:
+                raise AdvertOrderDoesNotExist()
+
+            if order_data.owner_id != user.specific_data['specific_id']:
+                raise AnotherUserOrderDeleteAttempt()
+
+            await conn.execute(delete_order_query)

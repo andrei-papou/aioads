@@ -9,5 +9,9 @@ class AnotherUserOrderUpdateAttempt(DefaultMessageException):
     default_message = 'You can\'t update another user\'s order'
 
 
+class AnotherUserOrderDeleteAttempt(DefaultMessageException):
+    default_message = 'You can\'t delete another user\'s order'
+
+
 class AdvertOrderDoesNotExist(DefaultMessageException):
     default_message = 'Advert order with such id does not exist'

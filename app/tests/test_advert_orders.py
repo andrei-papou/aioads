@@ -226,6 +226,15 @@ class UpdateAdvertOrderTestCase(BaseTestCase):
         assert db_data['heading_picture'] == data['heading_picture']
 
     @unittest_run_loop
+    async def test_returns_400_when_order_not_exist(self):
+        data = {'heading_picture': 'https://www.cdn.class.com/new_promo_cover_image'}
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid + 1})
+        response = await self.client.patch(url, headers=self.headers, data=json.dumps(data))
+
+        assert response.status == StatusCodes.NOT_FOUND
+        await response.release()
+
+    @unittest_run_loop
     async def test_returns_400_on_invalid_owner_post(self):
         data = {'heading_picture': 'h'}
         url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
@@ -277,3 +286,80 @@ class UpdateAdvertOrderTestCase(BaseTestCase):
             db_data = await rp.first()
 
         assert db_data['heading_picture'] == self.data['heading_picture']
+
+
+class DeleteAdvertOrderTestCase(BaseTestCase):
+
+    async def set_up(self):
+        user_data = {
+            'email': 'popow.andrej2009@yandex.ru',
+            'password': 'homm1994'
+        }
+        response = await self.client.post(self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP),
+                                          data=json.dumps(user_data))
+        self.headers = {settings.JWT_HEADER: (await response.json())['token']}
+        self.data = {
+            'follow_url_link': 'https://www.class.com/index',
+            'heading_picture': 'https://www.cdn.class.com/promo_cover_image',
+            'description': 'Some description text'
+        }
+        response = await self.client.post(self.app.get_url(EndpointsMapper.ADVERT_ORDERS),
+                                          data=json.dumps(self.data), headers=self.headers)
+        self.oid = (await response.json())['id']
+
+    @unittest_run_loop
+    async def test_deletes_order_on_owner_delete(self):
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+        response = await self.client.delete(url, headers=self.headers)
+
+        assert response.status == StatusCodes.NO_CONTENT
+        await response.release()
+
+        get_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            row = await conn.scalar(get_order_query)
+            assert row is None
+
+    @unittest_run_loop
+    async def test_returns_404_if_order_not_exist(self):
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid + 1})
+        response = await self.client.delete(url, headers=self.headers)
+
+        assert response.status == StatusCodes.NOT_FOUND
+        await response.release()
+
+    @unittest_run_loop
+    async def test_returns_403_to_another_user(self):
+        user_data = {
+            'email': 'andrei1111@tut.by',
+            'password': 'homm1994'
+        }
+        response = await self.client.post(path=self.app.get_url(EndpointsMapper.AD_PROVIDER_SIGNUP),
+                                          data=json.dumps(user_data))
+        headers = {settings.JWT_HEADER: (await response.json())['token']}
+
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+        response = await self.client.delete(url, headers=headers)
+
+        assert response.status == StatusCodes.FORBIDDEN
+        body = await response.json()
+        await response.release()
+
+        self.check_error_response_body(body, ApiErrorCodes.ANOTHER_USER_ORDER_DELETE_ATTEMPT, 'order_id')
+
+        get_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            row = await conn.scalar(get_order_query)
+            assert row is not None
+
+    @unittest_run_loop
+    async def test_returns_401_to_anon(self):
+        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+        response = await self.client.delete(url)
+
+        assert response.status == StatusCodes.UNAUTHORIZED
+
+        get_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            row = await conn.scalar(get_order_query)
+            assert row is not None

@@ -52,3 +52,7 @@ class AdvertOrdersQueryFactory:
         return sa.update(advert_orders)\
             .values(**{k: v for k, v in data_unfiltered.items() if v is not None})\
             .where(advert_orders.c.id == oid)
+
+    @staticmethod
+    def delete_advert_order(oid: int):
+        return sa.delete(advert_orders).where(advert_orders.c.id == oid)

@@ -13,6 +13,7 @@ class ApiErrorCodes:
     NOT_AD_PROVIDER = 9
     NOT_AD_PLACER = 10
     ANOTHER_USER_ORDER_UPDATE_ATTEMPT = 11
+    ANOTHER_USER_ORDER_DELETE_ATTEMPT = 12
 
 
 _config = ConfigParser()
