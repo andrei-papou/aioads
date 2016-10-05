@@ -209,21 +209,26 @@ class UpdateAdvertOrderTestCase(BaseTestCase):
                                           data=json.dumps(self.data), headers=self.headers)
         self.oid = (await response.json())['id']
 
+    @property
+    def url(self):
+        return self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+
+    @property
+    async def db_data(self):
+        select_order_query = AdOrdersQF.get_advert_order_by_id(self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            rp = await conn.execute(select_order_query)
+            return await rp.first()
+
     @unittest_run_loop
     async def test_updates_order_on_owner_valid_post(self):
         data = {'heading_picture': 'https://www.cdn.class.com/new_promo_cover_image'}
-        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
-        response = await self.client.patch(url, headers=self.headers, data=json.dumps(data))
+        response = await self.client.patch(self.url, headers=self.headers, data=json.dumps(data))
 
         assert response.status == StatusCodes.OK
         await response.release()
 
-        select_order_query = AdOrdersQF.get_advert_order_by_id(self.oid)
-        async with self.test_db_eng.acquire() as conn:
-            rp = await conn.execute(select_order_query)
-            db_data = await rp.first()
-
-        assert db_data['heading_picture'] == data['heading_picture']
+        assert (await self.db_data)['heading_picture'] == data['heading_picture']
 
     @unittest_run_loop
     async def test_returns_400_when_order_not_exist(self):
@@ -237,8 +242,7 @@ class UpdateAdvertOrderTestCase(BaseTestCase):
     @unittest_run_loop
     async def test_returns_400_on_invalid_owner_post(self):
         data = {'heading_picture': 'h'}
-        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
-        response = await self.client.patch(url, headers=self.headers, data=json.dumps(data))
+        response = await self.client.patch(self.url, headers=self.headers, data=json.dumps(data))
 
         assert response.status == StatusCodes.BAD_REQUEST
         body = await response.json()
@@ -256,36 +260,22 @@ class UpdateAdvertOrderTestCase(BaseTestCase):
                                           data=json.dumps(user_data))
         headers = {settings.JWT_HEADER: (await response.json())['token']}
         data = {'heading_picture': 'https://www.cdn.class.com/new_promo_cover_image'}
-        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
-        response = await self.client.patch(url, headers=headers, data=json.dumps(data))
+        response = await self.client.patch(self.url, headers=headers, data=json.dumps(data))
 
         assert response.status == StatusCodes.FORBIDDEN
         body = await response.json()
         await response.release()
 
         self.check_error_response_body(body, ApiErrorCodes.ANOTHER_USER_ORDER_UPDATE_ATTEMPT, 'order_id')
-
-        select_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
-        async with self.test_db_eng.acquire() as conn:
-            rp = await conn.execute(select_order_query)
-            db_data = await rp.first()
-
-        assert db_data['heading_picture'] == self.data['heading_picture']
+        assert (await self.db_data)['heading_picture'] == self.data['heading_picture']
 
     @unittest_run_loop
     async def test_returns_401_to_anon(self):
         data = {'heading_picture': 'https://www.cdn.class.com/new_promo_cover_image'}
-        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
-        response = await self.client.patch(url, data=json.dumps(data))
+        response = await self.client.patch(self.url, data=json.dumps(data))
 
         assert response.status == StatusCodes.UNAUTHORIZED
-
-        select_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
-        async with self.test_db_eng.acquire() as conn:
-            rp = await conn.execute(select_order_query)
-            db_data = await rp.first()
-
-        assert db_data['heading_picture'] == self.data['heading_picture']
+        assert (await self.db_data)['heading_picture'] == self.data['heading_picture']
 
 
 class DeleteAdvertOrderTestCase(BaseTestCase):
@@ -307,10 +297,19 @@ class DeleteAdvertOrderTestCase(BaseTestCase):
                                           data=json.dumps(self.data), headers=self.headers)
         self.oid = (await response.json())['id']
 
+    async def check_order_exists_in_db(self):
+        get_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
+        async with self.test_db_eng.acquire() as conn:
+            row = await conn.scalar(get_order_query)
+            assert row is not None
+
+    @property
+    def url(self):
+        return self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
+
     @unittest_run_loop
     async def test_deletes_order_on_owner_delete(self):
-        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
-        response = await self.client.delete(url, headers=self.headers)
+        response = await self.client.delete(self.url, headers=self.headers)
 
         assert response.status == StatusCodes.NO_CONTENT
         await response.release()
@@ -338,28 +337,20 @@ class DeleteAdvertOrderTestCase(BaseTestCase):
                                           data=json.dumps(user_data))
         headers = {settings.JWT_HEADER: (await response.json())['token']}
 
-        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
-        response = await self.client.delete(url, headers=headers)
+        response = await self.client.delete(self.url, headers=headers)
 
         assert response.status == StatusCodes.FORBIDDEN
         body = await response.json()
         await response.release()
 
         self.check_error_response_body(body, ApiErrorCodes.ANOTHER_USER_ORDER_DELETE_ATTEMPT, 'order_id')
-
-        get_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
-        async with self.test_db_eng.acquire() as conn:
-            row = await conn.scalar(get_order_query)
-            assert row is not None
+        await self.check_order_exists_in_db()
 
     @unittest_run_loop
     async def test_returns_401_to_anon(self):
-        url = self.app.get_url(EndpointsMapper.ADVERT_ORDER, parts={'order_id': self.oid})
-        response = await self.client.delete(url)
+        response = await self.client.delete(self.url)
 
         assert response.status == StatusCodes.UNAUTHORIZED
+        await response.release()
 
-        get_order_query = AdOrdersQF.get_advert_order_by_id(order_id=self.oid)
-        async with self.test_db_eng.acquire() as conn:
-            row = await conn.scalar(get_order_query)
-            assert row is not None
+        await self.check_order_exists_in_db()
