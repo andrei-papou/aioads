@@ -8,6 +8,7 @@ from data_access import metadata
 
 from data_access.auth import users, ad_placers, ad_providers
 from data_access.advert_orders import advert_orders
+from data_access.placements import placements
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
