@@ -1,6 +1,7 @@
 from extensions.http import HTTPMethods
 from handlers.auth import signup_ad_placer, signup_ad_provider, login, get_user_data
 from handlers.advert_orders import get_advert_orders, create_advert_order, update_advert_order, delete_advert_order
+from handlers.placements import get_placements
 
 
 class EndpointsMapper:
@@ -11,6 +12,8 @@ class EndpointsMapper:
 
     ADVERT_ORDERS = 'advert-orders'
     ADVERT_ORDER = 'advert-order'
+
+    PLACEMENTS = 'placements'
 
 
 route_config = {
@@ -50,6 +53,12 @@ route_config = {
         'methods': {
             HTTPMethods.PATCH: update_advert_order,
             HTTPMethods.DELETE: delete_advert_order
+        }
+    },
+    '/placements': {
+        'name': EndpointsMapper.PLACEMENTS,
+        'methods': {
+            HTTPMethods.GET: get_placements
         }
     }
 }

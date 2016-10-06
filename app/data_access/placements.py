@@ -11,4 +11,13 @@ placements = sa.Table('placements', metadata,
 
 
 class PlacementsQueryFactory:
-    pass
+
+    @staticmethod
+    def get_placements(owner_id):
+        columns = [
+            placements.c.id,
+            placements.c.placer_id,
+            placements.c.order_id,
+            placements.c.placed_at
+        ]
+        return sa.select(columns).where(placements.c.placer_id == owner_id)

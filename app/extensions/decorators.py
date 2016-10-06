@@ -37,3 +37,13 @@ def ad_provider_only(handler):
             return HTTPForbidden(code=ApiErrorCodes.NOT_AD_PROVIDER, errors={'general': 'You are not an ad provider'})
         return await handler(request, *args)
     return wrapper
+
+
+def ad_placer_only(handler):
+    async def wrapper(request, *args):
+        if request.user is None:
+            return HTTPUnauthorized()
+        if not request.user.is_ad_placer:
+            return HTTPForbidden(code=ApiErrorCodes.NOT_AD_PROVIDER, errors={'general': 'You are not an ad provider'})
+        return await handler(request, *args)
+    return wrapper
