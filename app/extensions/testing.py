@@ -34,6 +34,7 @@ class BaseTestCase(AioHTTPTestCase):
         """
         async with self.test_db_eng.acquire() as conn:
             await conn.execute(text("""
+                DELETE FROM placements;
                 DELETE FROM advert_orders;
                 DELETE FROM ad_placers;
                 DELETE FROM ad_providers;

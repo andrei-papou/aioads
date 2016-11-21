@@ -21,9 +21,9 @@ class Serializer:
 
         # splitting fields into two sections: fields that should be populated on this level and fields that
         # aggregate data from the deeper level
-        for db_name, json_name in schema.items():
-            if type(json_name) is str:
-                fields.append((db_name, json_name))
+        for db_name, field_config in schema.items():
+            if type(field_config) is tuple:
+                fields.append((db_name, field_config))
                 db_fields.append(db_name)
             else:
                 agr_fields.append(db_name)
@@ -41,8 +41,8 @@ class Serializer:
 
             item = {}
 
-            for db_name, json_name in fields:
-                item[json_name] = row[db_name]
+            for db_name, field_config in fields:
+                item[field_config[0]] = field_config[1](row[db_name])
             item['_row_hash'] = _row_hash
 
             for agr_f in agr_fields:
