@@ -23,6 +23,9 @@ _config.read('messages.ini')
 ERROR_MESSAGES = _config['errors']
 
 
+INVALID_ID = 0
+
+
 class UserTypes:
     AD_PROVIDER = 'ad-provider'
     AD_PLACER = 'ad-placer'

@@ -14,6 +14,7 @@ class EndpointsMapper:
     ADVERT_ORDER = 'advert-order'
 
     PLACEMENTS = 'placements'
+    PLACEMENT = 'placement'
 
 
 route_config = {
