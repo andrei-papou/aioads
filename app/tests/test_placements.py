@@ -155,9 +155,9 @@ class GetPlacementsTestCase(BaseTestCase):
 
     @unittest_run_loop
     async def test_returns_401_to_anon(self):
-        url = self.app.get_url(EndpointsMapper.PLACEMENT, parts={'placement_id', self.p_id})
+        url = self.app.get_url(EndpointsMapper.PLACEMENT, parts={'placement_id': self.p_id})
         response = await self.client.delete(url)
-        assert response == StatusCodes.UNAUTHORIZED
+        assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
 
         await self.check_placement_existence(does_exist=True)

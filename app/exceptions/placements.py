@@ -7,3 +7,11 @@ class AdvertOrderDoesNotExist(DefaultMessageException):
 
 class DuplicatedPlacement(DefaultMessageException):
     default_message = 'This ad placer already has already placed this advert'
+
+
+class PlacementDoesNotExist(DefaultMessageException):
+    default_message = 'Placement with such id does not exist'
+
+
+class AttemptToRemoveForeignPlacement(DefaultMessageException):
+    default_message = 'Attempt to remove foreign placement'

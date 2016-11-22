@@ -23,6 +23,14 @@ class PlacementsQueryFactory:
         return sa.select(columns).where(placements.c.placer_id == owner_id)
 
     @staticmethod
+    def get_placement(placement_id: int):
+        return sa.select([placements]).where(placements.c.id == placement_id)
+
+    @staticmethod
     def create_placement(placer_id: int, order_id: int):
         data = {'placer_id': placer_id, 'order_id': order_id}
         return sa.insert(placements).values(**data)
+
+    @staticmethod
+    def delete_placement(placement_id: int):
+        return sa.delete(placements).where(placements.c.id == placement_id)

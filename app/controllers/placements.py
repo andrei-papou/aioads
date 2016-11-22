@@ -5,7 +5,9 @@ from extensions.controllers import BaseController
 from extensions.serializers import serialize
 from data_access.placements import PlacementsQueryFactory as PlacementsQF
 from serialization.placements import list_placements_schema
-from exceptions.placements import DuplicatedPlacement, AdvertOrderDoesNotExist
+from exceptions.placements import (
+    DuplicatedPlacement, AdvertOrderDoesNotExist, PlacementDoesNotExist, AttemptToRemoveForeignPlacement
+)
 
 
 class PlacementsController(BaseController):
@@ -31,3 +33,19 @@ class PlacementsController(BaseController):
                     raise AdvertOrderDoesNotExist()
 
         return {'id': pk}
+
+    async def delete_placement(self, user: User, placement_id: int) -> None:
+        check_ownership_query = PlacementsQF.get_placement(placement_id)
+        delete_query = PlacementsQF.delete_placement(placement_id)
+
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(check_ownership_query)
+            p_data = await rp.first()
+
+            if p_data is None:
+                raise PlacementDoesNotExist()
+
+            if p_data.placer_id != user.specific_data['specific_id']:
+                raise AttemptToRemoveForeignPlacement()
+
+            await conn.execute(delete_query)
