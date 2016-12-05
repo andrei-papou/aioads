@@ -275,6 +275,7 @@ class UpdateAdvertOrderTestCase(BaseTestCase):
         response = await self.client.patch(self.url, data=json.dumps(data))
 
         assert response.status == StatusCodes.UNAUTHORIZED
+        await response.release()
         assert (await self.db_data)['heading_picture'] == self.data['heading_picture']
 
 

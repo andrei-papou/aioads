@@ -65,6 +65,17 @@ class AnalyticsTestCase(BaseTestCase):
         self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'placement_id')
 
     @unittest_run_loop
+    async def test_returns_400_for_non_existent_placement(self):
+        url = self.app.get_url(EndpointsMapper.CLICKS)
+        data = json.dumps({'placement_id': self.p_id - 1})
+        response = await self.client.post(url, headers=self.placer_headers, data=data)
+
+        assert response.status == StatusCodes.BAD_REQUEST
+        body = await response.json()
+        await response.release()
+        self.check_error_response_body(body, ApiErrorCodes.PLACEMENT_DOES_NOT_EXIST, 'placement_id')
+
+    @unittest_run_loop
     async def test_returns_403_to_ad_provider(self):
         url = self.app.get_url(EndpointsMapper.CLICKS)
         data = json.dumps({'placement_id': self.p_id})

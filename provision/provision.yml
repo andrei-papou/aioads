@@ -1,8 +1,6 @@
 ---
 - hosts: all
   sudo: yes
-  roles:
-    - yaegashi.blockinfile
   vars:
     vagrant_path: "/home/vagrant"
 
