@@ -2,6 +2,7 @@ from extensions.http import HTTPMethods
 from handlers.auth import signup_ad_placer, signup_ad_provider, login, get_user_data
 from handlers.advert_orders import get_advert_orders, create_advert_order, update_advert_order, delete_advert_order
 from handlers.placements import get_placements, create_placement, delete_placement
+from handlers.analytics import register_click
 
 
 class EndpointsMapper:
@@ -15,6 +16,8 @@ class EndpointsMapper:
 
     PLACEMENTS = 'placements'
     PLACEMENT = 'placement'
+
+    CLICKS = 'clicks'
 
 
 route_config = {
@@ -67,6 +70,12 @@ route_config = {
         'name': EndpointsMapper.PLACEMENT,
         'methods': {
             HTTPMethods.DELETE: delete_placement
+        }
+    },
+    '/analytics/clicks': {
+        'name': EndpointsMapper.CLICKS,
+        'methods': {
+            HTTPMethods.POST: register_click
         }
     }
 }
