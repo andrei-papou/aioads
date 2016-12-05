@@ -92,3 +92,52 @@ class AnalyticsTestCase(BaseTestCase):
 
         assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
+
+    @unittest_run_loop
+    async def test_view_is_registered_on_placer_post(self):
+        url = self.app.get_url(EndpointsMapper.VIEWS)
+        data = json.dumps({'placement_id': self.p_id})
+        response = await self.client.post(url, headers=self.placer_headers, data=data)
+
+        assert response.status == StatusCodes.CREATED
+        await response.release()
+
+    @unittest_run_loop
+    async def test_views_returns_400_on_invalid_post(self):
+        url = self.app.get_url(EndpointsMapper.VIEWS)
+        data = json.dumps({})
+        response = await self.client.post(url, headers=self.placer_headers, data=data)
+
+        assert response.status == StatusCodes.BAD_REQUEST
+        body = await response.json()
+        await response.release()
+        self.check_error_response_body(body, ApiErrorCodes.BODY_VALIDATION_ERROR, 'placement_id')
+
+    @unittest_run_loop
+    async def test_views_returns_400_for_non_existent_placement(self):
+        url = self.app.get_url(EndpointsMapper.VIEWS)
+        data = json.dumps({'placement_id': self.p_id - 1})
+        response = await self.client.post(url, headers=self.placer_headers, data=data)
+
+        assert response.status == StatusCodes.BAD_REQUEST
+        body = await response.json()
+        await response.release()
+        self.check_error_response_body(body, ApiErrorCodes.PLACEMENT_DOES_NOT_EXIST, 'placement_id')
+
+    @unittest_run_loop
+    async def test_views_returns_403_to_ad_provider(self):
+        url = self.app.get_url(EndpointsMapper.VIEWS)
+        data = json.dumps({'placement_id': self.p_id})
+        response = await self.client.post(url, headers=self.provider_headers, data=data)
+
+        assert response.status == StatusCodes.FORBIDDEN
+        await response.release()
+
+    @unittest_run_loop
+    async def test_views_returns_401_to_anon(self):
+        url = self.app.get_url(EndpointsMapper.VIEWS)
+        data = json.dumps({'placement_id': self.p_id})
+        response = await self.client.post(url, data=data)
+
+        assert response.status == StatusCodes.UNAUTHORIZED
+        await response.release()
