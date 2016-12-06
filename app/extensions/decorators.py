@@ -21,6 +21,19 @@ def validate_body_json(validator):
     return decorator
 
 
+def parse_query_params(validator, kwarg_name='params'):
+    def decorator(handler):
+        async def wrapper(request, *args):
+            try:
+                data = dict(pair.split('=') for pair in request.rel_url.query_string.split('&'))
+                validator(data).validate()
+            except (ValidationError, ModelConversionError) as e:
+                return HTTPBadRequest(code=ApiErrorCodes.QUERY_PARAMS_VALIDATION_ERROR, errors=e.messages)
+            return await handler(request, *args, **{kwarg_name: data})
+        return wrapper
+    return decorator
+
+
 def auth_required(handler):
     async def wrapper(request, *args):
         if request.user is None:

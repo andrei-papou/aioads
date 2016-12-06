@@ -2,7 +2,7 @@ from extensions.http import HTTPMethods
 from handlers.auth import signup_ad_placer, signup_ad_provider, login, get_user_data
 from handlers.advert_orders import get_advert_orders, create_advert_order, update_advert_order, delete_advert_order
 from handlers.placements import get_placements, create_placement, delete_placement
-from handlers.analytics import register_click, register_view
+from handlers.analytics import register_click, register_view, get_year_placement_clicks
 
 
 class EndpointsMapper:
@@ -20,31 +20,25 @@ class EndpointsMapper:
     CLICKS = 'clicks'
     VIEWS = 'views'
 
+    PLACEMENT_YEAR_CLICKS = 'placement-year-clicks'
+
 
 route_config = {
     '/signup-ad-placer': {
         'name': EndpointsMapper.AD_PLACER_SIGNUP,
-        'methods': {
-            HTTPMethods.POST: signup_ad_placer
-        }
+        'methods': {HTTPMethods.POST: signup_ad_placer}
     },
     '/signup-ad-provider': {
         'name': EndpointsMapper.AD_PROVIDER_SIGNUP,
-        'methods': {
-            HTTPMethods.POST: signup_ad_provider
-        }
+        'methods': {HTTPMethods.POST: signup_ad_provider}
     },
     '/login': {
         'name': EndpointsMapper.LOGIN,
-        'methods': {
-            HTTPMethods.POST: login
-        }
+        'methods': {HTTPMethods.POST: login}
     },
     '/account-data': {
         'name': EndpointsMapper.USER_DATA,
-        'methods': {
-            HTTPMethods.GET: get_user_data
-        }
+        'methods': {HTTPMethods.GET: get_user_data}
     },
     '/advert-orders': {
         'name': EndpointsMapper.ADVERT_ORDERS,
@@ -69,20 +63,18 @@ route_config = {
     },
     '/placements/{placement_id}': {
         'name': EndpointsMapper.PLACEMENT,
-        'methods': {
-            HTTPMethods.DELETE: delete_placement
-        }
+        'methods': {HTTPMethods.DELETE: delete_placement}
     },
     '/analytics/clicks': {
         'name': EndpointsMapper.CLICKS,
-        'methods': {
-            HTTPMethods.POST: register_click
-        }
+        'methods': {HTTPMethods.POST: register_click}
+    },
+    '/analytics/placement/{placement_id}/year-clicks': {
+        'name': EndpointsMapper.PLACEMENT_YEAR_CLICKS,
+        'methods': {HTTPMethods.GET: get_year_placement_clicks}
     },
     '/analytics/views': {
         'name': EndpointsMapper.VIEWS,
-        'methods': {
-            HTTPMethods.POST: register_view
-        }
+        'methods': {HTTPMethods.POST: register_view}
     }
 }

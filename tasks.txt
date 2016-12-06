@@ -1,0 +1,3 @@
+TODO: refactor `request.data` to be kwarg `data` param in request handler function
+TODO: replace dicts in `route_config` with class objects (looks like there is a memory overhead now)
+TODO: set specific user data fields as properties of object instead of dict

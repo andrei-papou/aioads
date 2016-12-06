@@ -141,3 +141,6 @@ class AnalyticsTestCase(BaseTestCase):
 
         assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
+
+    async def test_returns_year_clicks(self):
+        pass

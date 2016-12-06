@@ -1,3 +1,4 @@
+from datetime import datetime
 from configparser import ConfigParser
 
 
@@ -18,11 +19,16 @@ class ApiErrorCodes:
     DUPLICATED_PLACEMENT = 14
     ATTEMPT_TO_REMOVE_FOREIGN_PLACEMENT = 15
     PLACEMENT_DOES_NOT_EXIST = 16
+    QUERY_PARAMS_VALIDATION_ERROR = 17
+    ATTEMPT_TO_GET_FOREIGN_CLICKS_DATA = 18
 
 
 _config = ConfigParser()
 _config.read('messages.ini')
 ERROR_MESSAGES = _config['errors']
+
+
+OLDEST_DATE = datetime(1970, 1, 1)
 
 
 INVALID_ID = 0

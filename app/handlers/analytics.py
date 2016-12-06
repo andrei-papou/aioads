@@ -1,11 +1,11 @@
 from aiohttp.web import Request, Response
-from extensions.http import HTTPCreated, HTTPBadRequest
+from extensions.http import HTTPCreated, HTTPBadRequest, HTTPSuccess, HTTPForbidden
 from extensions.controllers import bind_controller
-from extensions.decorators import validate_body_json, ad_placer_only
+from extensions.decorators import validate_body_json, ad_placer_only, parse_query_params
 from constants import ApiErrorCodes
 from controllers.analytics import AnalyticsController
-from validators.analytics import RegisterValidator
-from exceptions.analytics import PlacementDoesNotExist
+from validators.analytics import RegisterValidator, YearValidator
+from exceptions.analytics import PlacementDoesNotExist, AttemptToGetForeignClicks
 
 
 @ad_placer_only
@@ -26,5 +26,18 @@ async def register_view(request: Request, controller: AnalyticsController) -> Re
     try:
         await controller.register_view(placement_id=request.data['placement_id'])
         return HTTPCreated()
+    except PlacementDoesNotExist as e:
+        return HTTPBadRequest(errors={'placement_id': e.message}, code=ApiErrorCodes.PLACEMENT_DOES_NOT_EXIST)
+
+
+@ad_placer_only
+@parse_query_params(YearValidator)
+@bind_controller(AnalyticsController)
+async def get_year_placement_clicks(request: Request, controller: AnalyticsController, params: dict) -> Response:
+    try:
+        data = await controller.get_year_clicks_for_placement(request.match_info['placement_id'], params['year'])
+        return HTTPSuccess(data=data)
+    except AttemptToGetForeignClicks as e:
+        return HTTPForbidden(errors={'placement_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_CLICKS_DATA)
     except PlacementDoesNotExist as e:
         return HTTPBadRequest(errors={'placement_id': e.message}, code=ApiErrorCodes.PLACEMENT_DOES_NOT_EXIST)
