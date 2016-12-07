@@ -21,9 +21,9 @@ async def get_advert_orders(request: Request, controller: AdvertOrdersController
 @ad_provider_only
 @validate_body_json(CreateAdvertValidator)
 @bind_controller(AdvertOrdersController)
-async def create_advert_order(request: Request, controller: AdvertOrdersController) -> Response:
+async def create_advert_order(request: Request, controller: AdvertOrdersController, body: dict) -> Response:
     try:
-        response_data = await controller.create_order(**request.data, user=request.user)
+        response_data = await controller.create_order(**body, user=request.user)
         return HTTPCreated(data=response_data)
     except AdvertOrderForSuchLinkAlreadyExists as e:
         return HTTPBadRequest(errors={'follow_url_link': e.message}, code=ApiErrorCodes.AD_ORDER_FOR_LINK_EXISTS)
@@ -32,9 +32,9 @@ async def create_advert_order(request: Request, controller: AdvertOrdersControll
 @ad_provider_only
 @validate_body_json(UpdateAdvertValidator)
 @bind_controller(AdvertOrdersController)
-async def update_advert_order(request: Request, controller: AdvertOrdersController) -> Response:
+async def update_advert_order(request: Request, controller: AdvertOrdersController, body: dict) -> Response:
     try:
-        response_data = await controller.update_order(request.match_info['order_id'], request.user, **request.data)
+        response_data = await controller.update_order(request.match_info['order_id'], request.user, **body)
         return HTTPSuccess(data=response_data)
     except AnotherUserOrderUpdateAttempt as e:
         return HTTPForbidden(code=ApiErrorCodes.ANOTHER_USER_ORDER_UPDATE_ATTEMPT,

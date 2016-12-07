@@ -10,9 +10,9 @@ from constants import ApiErrorCodes
 
 @validate_body_json(AdPlacerSignupValidator)
 @bind_controller(AuthController)
-async def signup_ad_placer(request: Request, controller: AuthController) -> Response:
+async def signup_ad_placer(request: Request, controller: AuthController, body: dict) -> Response:
     try:
-        token = await controller.signup_ad_placer(**request.data)
+        token = await controller.signup_ad_placer(**body)
         return HTTPCreated(data={'token': token})
     except EmailAlreadyInUse as e:
         return HTTPBadRequest(errors={'email': [e.message]}, code=ApiErrorCodes.EMAIL_ALREADY_IN_USE)
@@ -22,9 +22,9 @@ async def signup_ad_placer(request: Request, controller: AuthController) -> Resp
 
 @validate_body_json(AdProviderSignupValidator)
 @bind_controller(AuthController)
-async def signup_ad_provider(request: Request, controller: AuthController) -> Response:
+async def signup_ad_provider(request: Request, controller: AuthController, body: dict) -> Response:
     try:
-        token = await controller.signup_ad_provider(**request.data)
+        token = await controller.signup_ad_provider(**body)
         return HTTPCreated(data={'token': token})
     except EmailAlreadyInUse as e:
         return HTTPBadRequest(errors={'email': [e.message]}, code=ApiErrorCodes.EMAIL_ALREADY_IN_USE)
@@ -32,9 +32,9 @@ async def signup_ad_provider(request: Request, controller: AuthController) -> Re
 
 @validate_body_json(LoginValidator)
 @bind_controller(AuthController)
-async def login(request: Request, controller: AuthController) -> Response:
+async def login(request: Request, controller: AuthController, body: dict) -> Response:
     try:
-        token = await controller.login(**request.data)
+        token = await controller.login(**body)
         return HTTPSuccess(data={'token': token})
     except UserDoesNotExist as e:
         return HTTPBadRequest(errors={'email': [e.message]}, code=ApiErrorCodes.USER_DOES_NOT_EXIST)

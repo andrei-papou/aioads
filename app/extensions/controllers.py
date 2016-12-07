@@ -18,10 +18,11 @@ class BaseController:
         return await wrap_future(self.process_executor.submit(func, *args, **kwargs), loop=self.app.loop)
 
 
-def bind_controller(controller_class):
+def bind_controller(controller_class, kw_name = 'controller'):
     def decorator(handler):
-        async def wrapper(request):
+        async def wrapper(request, *args, **kwargs):
             controller = controller_class(database=request.db, app=request.app)
-            return await handler(request, controller)
+            kwargs[kw_name] = controller
+            return await handler(request, *args, **kwargs)
         return wrapper
     return decorator

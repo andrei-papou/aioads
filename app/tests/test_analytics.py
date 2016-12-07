@@ -1,13 +1,16 @@
 import json
+from datetime import datetime
+from sqlalchemy import insert
 from aiohttp.test_utils import unittest_run_loop
 from extensions.testing import BaseTestCase
 from extensions.http import StatusCodes
 from routes import EndpointsMapper
 from settings import settings
 from constants import ApiErrorCodes
+from data_access.analytics import clicks
 
 
-class AnalyticsTestCase(BaseTestCase):
+class AnalyticsSetupMixin:
 
     async def set_up(self):
         data = {
@@ -43,6 +46,9 @@ class AnalyticsTestCase(BaseTestCase):
         response = await self.client.post(url, headers=self.placer_headers, data=json.dumps({'order_id': self.order_id}))
         self.p_id = (await response.json())['id']
         await response.release()
+
+
+class AnalyticsRegisterTestCase(AnalyticsSetupMixin, BaseTestCase):
 
     @unittest_run_loop
     async def test_click_is_registered_on_placer_post(self):
@@ -142,5 +148,49 @@ class AnalyticsTestCase(BaseTestCase):
         assert response.status == StatusCodes.UNAUTHORIZED
         await response.release()
 
-    async def test_returns_year_clicks(self):
-        pass
+
+class AnalyticsRetrieveDataTestCase(AnalyticsSetupMixin, BaseTestCase):
+
+    async def set_up(self):
+        await super().set_up()
+
+        date_range = [
+            datetime(2016, 1, 1),
+            datetime(2016, 2, 2),
+            datetime(2015, 3, 3),
+            datetime(2014, 4, 4),
+            datetime(2014, 5, 5)
+        ]
+        async with self.test_db_eng.acquire() as conn:
+            for date in date_range:
+                await conn.execute(insert(clicks).values(placement_id=self.p_id, registered_at=date))
+
+    @unittest_run_loop
+    async def test_placement_year_clicks_returns_default_year_data(self):
+        url = self.app.get_url(EndpointsMapper.PLACEMENT_YEAR_CLICKS, parts={'placement_id': self.p_id})
+        response = await self.client.get(url, headers=self.placer_headers)
+
+        body = await response.json()
+        await response.release()
+
+        assert len(body) == 2
+        assert '1' in body
+        assert body['1'] == 1
+        assert '2' in body
+        assert body['2'] == 1
+
+    @unittest_run_loop
+    async def test_placement_year_clicks_returns_param_year_data(self):
+        url = self.app.get_url(EndpointsMapper.PLACEMENT_YEAR_CLICKS,
+                               parts={'placement_id': self.p_id},
+                               query={'year': 2014})
+        response = await self.client.get(url, headers=self.placer_headers)
+
+        body = await response.json()
+        await response.release()
+
+        assert len(body) == 2
+        assert '4' in body
+        assert body['4'] == 1
+        assert '5' in body
+        assert body['5'] == 1

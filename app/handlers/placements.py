@@ -20,9 +20,9 @@ async def get_placements(request: Request, controller: PlacementsController) -> 
 @ad_placer_only
 @validate_body_json(RegisterPlacementValidator)
 @bind_controller(PlacementsController)
-async def create_placement(request: Request, controller: PlacementsController) -> Response:
+async def create_placement(request: Request, controller: PlacementsController, body: dict) -> Response:
     try:
-        data = await controller.create_placement(user=request.user, **request.data)
+        data = await controller.create_placement(user=request.user, **body)
         return HTTPCreated(data=data)
     except DuplicatedPlacement as e:
         return HTTPBadRequest(errors={'order_id': e.message}, code=ApiErrorCodes.DUPLICATED_PLACEMENT)

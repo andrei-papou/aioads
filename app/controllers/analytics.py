@@ -32,7 +32,7 @@ class AnalyticsController(BaseController):
 
         if year is None:
             end_date = datetime.now()
-            start_date = datetime(end_date.year(), 1, 1)
+            start_date = datetime(end_date.year, 1, 1)
         else:
             start_date = datetime(year, 1, 1)
             end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
@@ -50,6 +50,7 @@ class AnalyticsController(BaseController):
                 raise AttemptToGetForeignClicks()
 
             rp = await conn.execute(query)
-        result = Counter(datetime(date).month for date in rp)
+        result = Counter(row[0].month for row in rp)
 
-        return dict(result)
+        data = dict(result)
+        return data

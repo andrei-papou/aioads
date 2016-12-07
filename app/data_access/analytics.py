@@ -18,8 +18,8 @@ views = sa.Table('views', metadata,
 def get_for_placement(table: sa.Table, p_id: int, start_date: datetime, end_date: datetime):
     return sa.select([table.c.registered_at]).where(sa.and_(
         table.c.placement_id == p_id,
-        table.c.registered_at > start_date,
-        table.c.registered_at < end_date
+        table.c.registered_at >= start_date,
+        table.c.registered_at <= end_date
     ))
 
 
