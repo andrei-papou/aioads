@@ -153,13 +153,17 @@ class AnalyticsRetrieveDataTestCase(AnalyticsSetupMixin, BaseTestCase):
 
     async def set_up(self):
         await super().set_up()
+        self.now = datetime.now()
 
         date_range = [
-            datetime(2016, 1, 1),
-            datetime(2016, 2, 2),
-            datetime(2015, 3, 3),
-            datetime(2014, 4, 4),
-            datetime(2014, 5, 5)
+            datetime(self.now.year, 1, 1, 12),
+            datetime(self.now.year, 2, 2, 11),
+            datetime(self.now.year, self.now.month, 1, 10),
+            datetime(self.now.year, self.now.month, 1, 9),
+            datetime(self.now.year, self.now.month, 2, 8),
+            datetime(2015, 3, 3, 10),
+            datetime(2014, 4, 4, 9),
+            datetime(2014, 5, 5, 9)
         ]
         async with self.test_db_eng.acquire() as conn:
             for date in date_range:
@@ -173,11 +177,13 @@ class AnalyticsRetrieveDataTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 2
+        assert len(body) == 3
         assert '1' in body
         assert body['1'] == 1
         assert '2' in body
         assert body['2'] == 1
+        assert '12' in body
+        assert body['12'] == 3
 
     @unittest_run_loop
     async def test_placement_year_clicks_returns_param_year_data(self):
@@ -194,3 +200,17 @@ class AnalyticsRetrieveDataTestCase(AnalyticsSetupMixin, BaseTestCase):
         assert body['4'] == 1
         assert '5' in body
         assert body['5'] == 1
+
+    @unittest_run_loop
+    async def test_placement_month_clicks_returns_default_month_and_year_data(self):
+        url = self.app.get_url(EndpointsMapper.PLACEMENT_MONTH_CLICKS, parts={'placement_id': self.p_id})
+        response = await self.client.get(url, headers=self.placer_headers)
+
+        body = await response.json()
+        await response.release()
+
+        assert len(body) == 2
+        assert '1' in body
+        assert body['1'] == 2
+        assert '2' in body
+        assert body['2'] == 1

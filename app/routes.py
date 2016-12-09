@@ -2,7 +2,7 @@ from extensions.http import HTTPMethods
 from handlers.auth import signup_ad_placer, signup_ad_provider, login, get_user_data
 from handlers.advert_orders import get_advert_orders, create_advert_order, update_advert_order, delete_advert_order
 from handlers.placements import get_placements, create_placement, delete_placement
-from handlers.analytics import register_click, register_view, get_year_placement_clicks
+from handlers.analytics import register_click, register_view, get_year_placement_clicks, get_month_placement_clicks
 
 
 class EndpointsMapper:
@@ -21,6 +21,7 @@ class EndpointsMapper:
     VIEWS = 'views'
 
     PLACEMENT_YEAR_CLICKS = 'placement-year-clicks'
+    PLACEMENT_MONTH_CLICKS = 'placement-month-clicks'
 
 
 route_config = {
@@ -72,6 +73,10 @@ route_config = {
     '/analytics/placement/{placement_id}/year-clicks': {
         'name': EndpointsMapper.PLACEMENT_YEAR_CLICKS,
         'methods': {HTTPMethods.GET: get_year_placement_clicks}
+    },
+    '/analytics/placement/{placement_id}/month-clicks': {
+        'name': EndpointsMapper.PLACEMENT_MONTH_CLICKS,
+        'methods': {HTTPMethods.GET: get_month_placement_clicks}
     },
     '/analytics/views': {
         'name': EndpointsMapper.VIEWS,
