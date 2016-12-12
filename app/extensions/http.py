@@ -14,12 +14,11 @@ class StatusCodes:
     METHOD_NOT_ALLOWED = 405
 
 
-class HTTPMethods:
-    GET = 'get'
-    POST = 'post'
-    PUT = 'put'
-    PATCH = 'patch'
-    DELETE = 'delete'
+GET = 'get'
+POST = 'post'
+PUT = 'put'
+PATCH = 'patch'
+DELETE = 'delete'
 
 
 class StatusCodeResponse(Response):

@@ -161,6 +161,9 @@ class AnalyticsRetrieveDataTestCase(AnalyticsSetupMixin, BaseTestCase):
             datetime(self.now.year, self.now.month, 1, 10),
             datetime(self.now.year, self.now.month, 1, 9),
             datetime(self.now.year, self.now.month, 2, 8),
+            datetime(self.now.year, self.now.month, self.now.day, 23, 2),
+            datetime(self.now.year, self.now.month, self.now.day, 22, 3),
+            datetime(self.now.year, self.now.month, self.now.day, 1),
             datetime(2015, 3, 3, 10),
             datetime(2014, 4, 4, 9),
             datetime(2014, 5, 5, 9)
@@ -182,8 +185,8 @@ class AnalyticsRetrieveDataTestCase(AnalyticsSetupMixin, BaseTestCase):
         assert body['1'] == 1
         assert '2' in body
         assert body['2'] == 1
-        assert '12' in body
-        assert body['12'] == 3
+        assert str(self.now.month) in body
+        assert body[str(self.now.month)] == 6
 
     @unittest_run_loop
     async def test_placement_year_clicks_returns_param_year_data(self):
@@ -209,8 +212,38 @@ class AnalyticsRetrieveDataTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 2
+        assert len(body) == 3
         assert '1' in body
         assert body['1'] == 2
         assert '2' in body
         assert body['2'] == 1
+
+    @unittest_run_loop
+    async def test_placement_month_clicks_returns_param_year_and_month(self):
+        url = self.app.get_url(EndpointsMapper.PLACEMENT_MONTH_CLICKS,
+                               parts={'placement_id': self.p_id},
+                               query={'year': 2014, 'month': 4})
+        response = await self.client.get(url, headers=self.placer_headers)
+
+        body = await response.json()
+        await response.release()
+
+        assert len(body) == 1
+        assert '4' in body
+        assert body['4'] == 1
+
+    @unittest_run_loop
+    async def test_placement_day_returns_default_day_month_and_year_data(self):
+        url = self.app.get_url(EndpointsMapper, parts={'placement_id': self.p_id})
+        response = await self.client.get(url, headers=self.placer_headers)
+
+        body = await response.json()
+        await response.release()
+
+        assert len(body) == 3
+        assert '1' in body
+        assert body['1'] == 1
+        assert '22' in body
+        assert body['22'] == 1
+        assert '23' in body
+        assert body['23'] == 1

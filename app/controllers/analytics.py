@@ -47,14 +47,13 @@ class AnalyticsController(BaseController):
     async def get_year_clicks_for_placement(self, user: User, p_id: int, year: int = None) -> dict:
 
         if year is None:
-            end_date = datetime.now()
-            start_date = datetime(end_date.year, 1, 1)
-        else:
-            start_date = datetime(year, 1, 1)
-            end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+            year = datetime.now().year
+
+        start_date = datetime(year, 1, 1)
+        end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
 
         rp = await self._get_clicks_in_date_range(user, p_id, start_date, end_date)
-        return dict(Counter(row[0].month for row in rp))
+        return dict(Counter([row[0].month for row in rp]))
 
     async def get_month_clicks_for_placement(self, user: User, p_id: int, year: int = None, month: int = None):
         now = datetime.now()
@@ -70,3 +69,24 @@ class AnalyticsController(BaseController):
 
         rp = await self._get_clicks_in_date_range(user, p_id, start_date, end_date)
         return dict(Counter(row[0].day for row in rp))
+
+    async def get_day_clicks_for_placement(self,
+                                           user: User,
+                                           p_id: int,
+                                           year: int = None,
+                                           month: int = None,
+                                           day: int = None):
+        now = datetime.now()
+
+        if year is None:
+            year = now.year
+        if month is None:
+            month = now.month
+        if day is None:
+            day = now.day
+
+        start_date = datetime(year, month, day, 0)
+        end_date = datetime(year, month, day, 23)
+
+        rp = await self._get_clicks_in_date_range(user, p_id, start_date, end_date)
+        return dict(Counter(row[0].hour for row in rp))
