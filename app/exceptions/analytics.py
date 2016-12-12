@@ -7,3 +7,7 @@ class PlacementDoesNotExist(DefaultMessageException):
 
 class AttemptToGetForeignClicks(DefaultMessageException):
     default_message = 'Attempt to fetch clicks data which belongs to someone else'
+
+
+class AttemptToGetForeignViews(DefaultMessageException):
+    default_message = 'Attempt to fetch views data which belongs to someone else'

@@ -5,7 +5,7 @@ from extensions.user_model import User
 from extensions.controllers import BaseController
 from data_access.analytics import ClicksQueryFactory as ClicksQF, ViewsQueryFactory as ViewsQF
 from data_access.placements import PlacementsQueryFactory as PlacementsQF
-from exceptions.analytics import PlacementDoesNotExist, AttemptToGetForeignClicks
+from exceptions.analytics import PlacementDoesNotExist, AttemptToGetForeignClicks, AttemptToGetForeignViews
 
 
 class AnalyticsController(BaseController):
@@ -22,6 +22,22 @@ class AnalyticsController(BaseController):
 
             if p_data.placer_id != user.specific_data['specific_id']:
                 raise AttemptToGetForeignClicks()
+
+            rp = await conn.execute(query)
+        return rp
+
+    async def _get_views_in_date_range(self, user: User, p_id: int, start_date: datetime, end_date: datetime):
+        check_ownership_query = PlacementsQF.get_placement(p_id)
+        query = ViewsQF.get_views_for_placement(p_id, start_date, end_date)
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(check_ownership_query)
+            p_data = await rp.first()
+
+            if p_data is None:
+                raise PlacementDoesNotExist()
+
+            if p_data.placer_id != user.specific_data['specific_id']:
+                raise AttemptToGetForeignViews()
 
             rp = await conn.execute(query)
         return rp
@@ -86,7 +102,54 @@ class AnalyticsController(BaseController):
             day = now.day
 
         start_date = datetime(year, month, day, 0)
-        end_date = datetime(year, month, day, 23)
+        end_date = datetime(year, month, day + 1, 0) - timedelta(seconds=1)
 
         rp = await self._get_clicks_in_date_range(user, p_id, start_date, end_date)
+        return dict(Counter(row[0].hour for row in rp))
+
+    async def get_year_views_for_placement(self, user: User, p_id: int, year: int = None) -> dict:
+
+        if year is None:
+            year = datetime.now().year
+
+        start_date = datetime(year, 1, 1)
+        end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+
+        rp = await self._get_views_in_date_range(user, p_id, start_date, end_date)
+        return dict(Counter([row[0].month for row in rp]))
+
+    async def get_month_views_for_placement(self, user: User, p_id: int, year: int = None, month: int = None):
+        now = datetime.now()
+
+        if year is None:
+            year = now.year
+        if month is None:
+            month = now.month
+
+        start_date = datetime(year, month, 1)
+        end_date_raw = datetime(year, month + 1, 1) if month < 12 else datetime(year + 1, 1, 1)
+        end_date = min(end_date_raw, now)
+
+        rp = await self._get_views_in_date_range(user, p_id, start_date, end_date)
+        return dict(Counter(row[0].day for row in rp))
+
+    async def get_day_views_for_placement(self,
+                                           user: User,
+                                           p_id: int,
+                                           year: int = None,
+                                           month: int = None,
+                                           day: int = None):
+        now = datetime.now()
+
+        if year is None:
+            year = now.year
+        if month is None:
+            month = now.month
+        if day is None:
+            day = now.day
+
+        start_date = datetime(year, month, day, 0)
+        end_date = datetime(year, month, day + 1, 0) - timedelta(seconds=1)
+
+        rp = await self._get_views_in_date_range(user, p_id, start_date, end_date)
         return dict(Counter(row[0].hour for row in rp))

@@ -3,7 +3,8 @@ from handlers.auth import signup_ad_placer, signup_ad_provider, login, get_user_
 from handlers.advert_orders import get_advert_orders, create_advert_order, update_advert_order, delete_advert_order
 from handlers.placements import get_placements, create_placement, delete_placement
 from handlers.analytics import (
-    register_click, register_view, get_year_placement_clicks, get_month_placement_clicks, get_day_placement_clicks
+    register_click, register_view, get_year_placement_clicks, get_month_placement_clicks, get_day_placement_clicks,
+    get_year_placement_views, get_month_placement_views, get_day_placement_views
 )
 
 
@@ -25,6 +26,10 @@ class EndpointsMapper:
     PLACEMENT_YEAR_CLICKS = 'placement-year-clicks'
     PLACEMENT_MONTH_CLICKS = 'placement-month-clicks'
     PLACEMENT_DAY_CLICKS = 'placement-day-clicks'
+
+    PLACEMENT_YEAR_VIEWS = 'placement-year-views'
+    PLACEMENT_MONTH_VIEWS = 'placement-month-views'
+    PLACEMENT_DAY_VIEWS = 'placement-day-views'
 
 
 route_config = {
@@ -88,5 +93,17 @@ route_config = {
     '/analytics/views': {
         'name': EndpointsMapper.VIEWS,
         'methods': {POST: register_view}
-    }
+    },
+    '/analytics/placement/{placement_id}/year-views': {
+        'name': EndpointsMapper.PLACEMENT_YEAR_VIEWS,
+        'methods': {GET: get_year_placement_views}
+    },
+    '/analytics/placement/{placement_id}/month-views': {
+        'name': EndpointsMapper.PLACEMENT_MONTH_VIEWS,
+        'methods': {GET: get_month_placement_views}
+    },
+    '/analytics/placement/{placement_id}/day-views': {
+        'name': EndpointsMapper.PLACEMENT_DAY_VIEWS,
+        'methods': {GET: get_day_placement_views}
+    },
 }
