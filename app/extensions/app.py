@@ -1,4 +1,4 @@
-from aiohttp.web import Application
+from aiohttp.web import Application, Response
 
 
 class ImproperlyConfigured(Exception):
@@ -11,6 +11,15 @@ class App(Application):
         super().__init__(**kwargs)
         self.__db = db
         self.configure_routes(route_config)
+
+    def make_options_handler(self, methods):
+        async def options_handler(request):
+            response = Response()
+            ms = list(methods)
+            ms.append('OPTIONS')
+            response.headers['Access-Control-Allow-Methods'] = ', '.join([m.upper() for m in ms])
+            return response
+        return options_handler
 
     @property
     def db(self):
@@ -29,6 +38,7 @@ class App(Application):
 
             for method, handler in config['methods'].items():
                 resource.add_route(method, handler)
+            resource.add_route('options', self.make_options_handler(config['methods'].keys()))
 
     def get_url(self, resource_name, parts=None, query=None):
         kwargs = {}

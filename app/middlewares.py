@@ -48,5 +48,15 @@ async def auth_middleware(app, handler):
     return middleware_wrapper
 
 
-middlewares = (db_middleware, logging_middleware, auth_middleware)
+async def cors_middleware(app, handler):
+    async def middleware_wrapper(request):
+        response = await handler(request)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response.headers['Access-Control-Max-Age'] = '86400'
+        return response
+    return middleware_wrapper
+
+
+middlewares = (cors_middleware, db_middleware, logging_middleware, auth_middleware)
 test_middlewares = (db_middleware, auth_middleware)

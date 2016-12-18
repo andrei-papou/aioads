@@ -33,6 +33,7 @@ class User:
             'first_name': self.first_name,
             'last_name': self.last_name,
             'cash': self.cash,
+            'type': self.type
         }
         if self.type == UserTypes.AD_PLACER:
             base['website'] = self.specific_data['website']
