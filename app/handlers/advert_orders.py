@@ -18,6 +18,16 @@ async def get_advert_orders(request: Request, controller: AdvertOrdersController
     return HTTPSuccess(data=result)
 
 
+@auth_required
+@bind_controller(AdvertOrdersController)
+async def get_advert_order(request: Request, controller: AdvertOrdersController) -> Response:
+    try:
+        response_data = await controller.get_order(request.match_info['order_id'])
+        return HTTPSuccess(data=response_data)
+    except AdvertOrderDoesNotExist as e:
+        return HTTPNotFound(data={'order_id': e.message})
+
+
 @ad_provider_only
 @validate_body_json(CreateAdvertValidator)
 @bind_controller(AdvertOrdersController)

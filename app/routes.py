@@ -1,6 +1,8 @@
 from extensions.http import GET, POST, DELETE, PATCH
 from handlers.auth import signup_ad_placer, signup_ad_provider, login, get_user_data
-from handlers.advert_orders import get_advert_orders, create_advert_order, update_advert_order, delete_advert_order
+from handlers.advert_orders import (
+    get_advert_orders, get_advert_order, create_advert_order, update_advert_order, delete_advert_order
+)
 from handlers.placements import get_placements, create_placement, delete_placement
 from handlers.analytics import (
     register_click, register_view, get_year_placement_clicks, get_month_placement_clicks, get_day_placement_clicks,
@@ -59,6 +61,7 @@ route_config = {
     '/advert-orders/{order_id}': {
         'name': EndpointsMapper.ADVERT_ORDER,
         'methods': {
+            GET: get_advert_order,
             PATCH: update_advert_order,
             DELETE: delete_advert_order
         }

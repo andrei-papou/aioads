@@ -18,6 +18,23 @@ class AdvertOrdersController(BaseController):
             rp = await conn.execute(AdvertOrdersQF.get_advert_orders())
         return rp
 
+    async def get_order(self, order_id: int) -> dict:
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(AdvertOrdersQF.get_advert_order_by_id(order_id))
+            data = await rp.first()
+        if data is None:
+            raise AdvertOrderDoesNotExist()
+        return {
+            'id': data.id,
+            'heading_picture': data.heading_picture,
+            'follow_url_link': data.follow_url_link,
+            'description': data.description,
+            'rank': data.rank,
+            'clicks': data.clicks,
+            'views': data.views
+        }
+
+
     async def create_order(self, follow_url_link: str, heading_picture: str, description: str, user: User) -> dict:
         owner_id = user.specific_data['specific_id']
         query = AdvertOrdersQF.create_advert_order(follow_url_link, heading_picture, description, owner_id)

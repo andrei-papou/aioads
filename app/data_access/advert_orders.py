@@ -43,10 +43,21 @@ class AdvertOrdersQueryFactory:
             advert_orders.c.id,
             advert_orders.c.heading_picture,
             advert_orders.c.follow_url_link,
+            advert_orders.c.rank,
             advert_orders.c.description,
-            advert_orders.c.owner_id
+            advert_orders.c.owner_id,
+            sa.func.count(clicks.c.id).label('clicks'),
+            sa.func.count(views.c.id).label('views')
         ]
-        return sa.select(columns).where(advert_orders.c.id == order_id)
+        tables = advert_orders \
+            .outerjoin(placements, advert_orders.c.id == placements.c.order_id) \
+            .outerjoin(views, placements.c.id == views.c.placement_id) \
+            .outerjoin(clicks, placements.c.id == clicks.c.placement_id)
+        return sa.select(columns) \
+            .select_from(tables)\
+            .where(advert_orders.c.id == order_id) \
+            .group_by(advert_orders.c.id) \
+            .order_by(advert_orders.c.rank.desc())
 
     @staticmethod
     def create_advert_order(link: str, heading_picture: str, description: str, owner_id: int) -> dml.Insert:
