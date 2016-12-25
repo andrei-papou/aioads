@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from extensions.controllers import BaseController
 from extensions.serializers import serialize
@@ -8,9 +9,42 @@ from exceptions.advert_orders import (
     AdvertOrderForSuchLinkAlreadyExists, AnotherUserOrderUpdateAttempt, AdvertOrderDoesNotExist,
     AnotherUserOrderDeleteAttempt
 )
+from controllers.mixins import GrabAnalyticsMixin
 
 
-class AdvertOrdersController(BaseController):
+class AdvertOrdersController(GrabAnalyticsMixin, BaseController):
+
+    async def _get_views_in_date_range(self, user: User, uid: int, start_date: datetime, end_date: datetime):
+        check_ownership_query = AdvertOrdersQF.get_advert_order_by_id(uid)
+        query = AdvertOrdersQF.get_views(uid, start_date, end_date)
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(check_ownership_query)
+            data = await rp.first()
+
+            if data is None:
+                raise AdvertOrderDoesNotExist()
+
+            if data.owner_id != user.specific_data['specific_id']:
+                raise AttemptToGetForeignViews()
+
+            rp = await conn.execute(query)
+        return rp
+
+    async def _get_clicks_in_date_range(self, user: User, uid: int, start_date: datetime, end_date: datetime):
+        check_ownership_query = AdvertOrdersQF.get_advert_order_by_id(uid)
+        query = AdvertOrdersQF.get_clicks(uid, start_date, end_date)
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(check_ownership_query)
+            data = await rp.first()
+
+            if data is None:
+                raise AdvertOrderDoesNotExist()
+
+            if data.owner_id != user.specific_data['specific_id']:
+                raise AttemptToGetForeignClicks()
+
+            rp = await conn.execute(query)
+        return rp
 
     @serialize(schema=list_advert_orders_schema)
     async def get_orders(self) -> list:
@@ -33,7 +67,6 @@ class AdvertOrdersController(BaseController):
             'clicks': data.clicks,
             'views': data.views
         }
-
 
     async def create_order(self, follow_url_link: str, heading_picture: str, description: str, user: User) -> dict:
         owner_id = user.specific_data['specific_id']

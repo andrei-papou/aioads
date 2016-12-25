@@ -1,13 +1,16 @@
 from extensions.http import GET, POST, DELETE, PATCH
 from handlers.auth import signup_ad_placer, signup_ad_provider, login, get_user_data
 from handlers.advert_orders import (
-    get_advert_orders, get_advert_order, create_advert_order, update_advert_order, delete_advert_order
+    get_advert_orders, get_advert_order, create_advert_order, update_advert_order, delete_advert_order,
+    get_year_advert_order_views, get_year_advert_order_clicks, get_month_advert_order_views,
+    get_month_advert_order_clicks, get_day_advert_order_views, get_day_advert_order_clicks
 )
-from handlers.placements import get_placements, create_placement, delete_placement
-from handlers.analytics import (
-    register_click, register_view, get_year_placement_clicks, get_month_placement_clicks, get_day_placement_clicks,
-    get_year_placement_views, get_month_placement_views, get_day_placement_views
+from handlers.placements import (
+    get_placements, create_placement, delete_placement, get_year_placement_clicks,
+    get_year_placement_views, get_month_placement_views, get_day_placement_views,
+    get_month_placement_clicks, get_day_placement_clicks,
 )
+from handlers.analytics import register_click, register_view
 
 
 class EndpointsMapper:
@@ -24,6 +27,14 @@ class EndpointsMapper:
 
     CLICKS = 'clicks'
     VIEWS = 'views'
+
+    AD_ORDER_YEAR_CLICKS = 'ad-order-year-clicks'
+    AD_ORDER_MONTH_CLICKS = 'ad-order-month-clicks'
+    AD_ORDER_DAY_CLICKS = 'ad-order-day-clicks'
+
+    AD_ORDER_YEAR_VIEWS = 'ad-order-year-views'
+    AD_ORDER_MONTH_VIEWS = 'ad-order-month-views'
+    AD_ORDER_DAY_VIEWS = 'ad-order-day-views'
 
     PLACEMENT_YEAR_CLICKS = 'placement-year-clicks'
     PLACEMENT_MONTH_CLICKS = 'placement-month-clicks'
@@ -66,6 +77,30 @@ route_config = {
             DELETE: delete_advert_order
         }
     },
+    '/advert-orders/{order_id}/year-views': {
+        'name': EndpointsMapper.AD_ORDER_YEAR_VIEWS,
+        'methods': {GET: get_year_advert_order_views}
+    },
+    '/advert-orders/{order_id}/month-views': {
+        'name': EndpointsMapper.AD_ORDER_MONTH_VIEWS,
+        'methods': {GET: get_month_advert_order_views}
+    },
+    '/advert-orders/{order_id}/day-views': {
+        'name': EndpointsMapper.AD_ORDER_DAY_VIEWS,
+        'methods': {GET: get_day_advert_order_views}
+    },
+    '/advert-orders/{order_id}/year-clicks': {
+        'name': EndpointsMapper.AD_ORDER_YEAR_CLICKS,
+        'methods': {GET: get_year_advert_order_clicks}
+    },
+    '/advert-orders/{order_id}/month-clicks': {
+        'name': EndpointsMapper.AD_ORDER_MONTH_CLICKS,
+        'methods': {GET: get_month_advert_order_clicks}
+    },
+    '/advert-orders/{order_id}/day-clicks': {
+        'name': EndpointsMapper.AD_ORDER_DAY_CLICKS,
+        'methods': {GET: get_day_advert_order_clicks}
+    },
     '/placements': {
         'name': EndpointsMapper.PLACEMENTS,
         'methods': {
@@ -77,36 +112,36 @@ route_config = {
         'name': EndpointsMapper.PLACEMENT,
         'methods': {DELETE: delete_placement}
     },
+    '/placements/{placement_id}/year-clicks': {
+        'name': EndpointsMapper.PLACEMENT_YEAR_CLICKS,
+        'methods': {GET: get_year_placement_clicks}
+    },
+    '/placements/{placement_id}/month-clicks': {
+        'name': EndpointsMapper.PLACEMENT_MONTH_CLICKS,
+        'methods': {GET: get_month_placement_clicks}
+    },
+    '/placements/{placement_id}/day-clicks': {
+        'name': EndpointsMapper.PLACEMENT_DAY_CLICKS,
+        'methods': {GET: get_day_placement_clicks}
+    },
+    '/placements/{placement_id}/year-views': {
+        'name': EndpointsMapper.PLACEMENT_YEAR_VIEWS,
+        'methods': {GET: get_year_placement_views}
+    },
+    '/placements/{placement_id}/month-views': {
+        'name': EndpointsMapper.PLACEMENT_MONTH_VIEWS,
+        'methods': {GET: get_month_placement_views}
+    },
+    '/placements/{placement_id}/day-views': {
+        'name': EndpointsMapper.PLACEMENT_DAY_VIEWS,
+        'methods': {GET: get_day_placement_views}
+    },
     '/analytics/clicks': {
         'name': EndpointsMapper.CLICKS,
         'methods': {POST: register_click}
     },
-    '/analytics/placement/{placement_id}/year-clicks': {
-        'name': EndpointsMapper.PLACEMENT_YEAR_CLICKS,
-        'methods': {GET: get_year_placement_clicks}
-    },
-    '/analytics/placement/{placement_id}/month-clicks': {
-        'name': EndpointsMapper.PLACEMENT_MONTH_CLICKS,
-        'methods': {GET: get_month_placement_clicks}
-    },
-    '/analytics/placement/{placement_id}/day-clicks': {
-        'name': EndpointsMapper.PLACEMENT_DAY_CLICKS,
-        'methods': {GET: get_day_placement_clicks}
-    },
     '/analytics/views': {
         'name': EndpointsMapper.VIEWS,
         'methods': {POST: register_view}
-    },
-    '/analytics/placement/{placement_id}/year-views': {
-        'name': EndpointsMapper.PLACEMENT_YEAR_VIEWS,
-        'methods': {GET: get_year_placement_views}
-    },
-    '/analytics/placement/{placement_id}/month-views': {
-        'name': EndpointsMapper.PLACEMENT_MONTH_VIEWS,
-        'methods': {GET: get_month_placement_views}
-    },
-    '/analytics/placement/{placement_id}/day-views': {
-        'name': EndpointsMapper.PLACEMENT_DAY_VIEWS,
-        'methods': {GET: get_day_placement_views}
-    },
+    }
 }

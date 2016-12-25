@@ -1,12 +1,14 @@
 from aiohttp.web import Request, Response
 from extensions.http import HTTPSuccess, HTTPCreated, HTTPBadRequest, HTTPForbidden, HTTPNotFound, HTTPNoContent
 from extensions.controllers import bind_controller
-from extensions.decorators import auth_required, validate_body_json, ad_provider_only
+from extensions.decorators import auth_required, validate_body_json, ad_provider_only, parse_query_params
 from controllers.advert_orders import AdvertOrdersController
+from exceptions.analytics import AttemptToGetForeignClicks, AttemptToGetForeignViews
 from exceptions.advert_orders import (
     AdvertOrderForSuchLinkAlreadyExists, AdvertOrderDoesNotExist, AnotherUserOrderUpdateAttempt,
     AnotherUserOrderDeleteAttempt
 )
+from validators.analytics import YearValidator, MonthValidator, DayValidator
 from validators.advert_orders import CreateAdvertValidator, UpdateAdvertValidator
 from constants import ApiErrorCodes
 
@@ -64,3 +66,99 @@ async def delete_advert_order(request: Request, controller: AdvertOrdersControll
                              errors={'order_id': e.message})
     except AdvertOrderDoesNotExist as e:
         return HTTPNotFound(data={'order_id': e.message})
+
+
+@ad_provider_only
+@parse_query_params(YearValidator)
+@bind_controller(AdvertOrdersController)
+async def get_year_advert_order_views(request: Request, controller: AdvertOrdersController, params: dict) -> Response:
+    try:
+        data = await controller.get_year_views(request.user,
+                                               request.match_info['order_id'],
+                                               params.get('year'))
+        return HTTPSuccess(data=data)
+    except AttemptToGetForeignViews as e:
+        return HTTPForbidden(errors={'order_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_VIEWS_DATA)
+    except AdvertOrderDoesNotExist as e:
+        return HTTPBadRequest(errors={'order_id': e.message}, code=ApiErrorCodes.AD_ORDER_DOES_NOT_EXIST)
+
+
+@ad_provider_only
+@parse_query_params(MonthValidator)
+@bind_controller(AdvertOrdersController)
+async def get_month_advert_order_views(request: Request, controller: AdvertOrdersController, params: dict) -> Response:
+    try:
+        data = await controller.get_month_views(request.user,
+                                                request.match_info['order_id'],
+                                                params.get('year'),
+                                                params.get('month'))
+        return HTTPSuccess(data=data)
+    except AttemptToGetForeignViews as e:
+        return HTTPForbidden(errors={'order_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_VIEWS_DATA)
+    except AdvertOrderDoesNotExist as e:
+        return HTTPBadRequest(errors={'order_id': e.message}, code=ApiErrorCodes.AD_ORDER_DOES_NOT_EXIST)
+
+
+@ad_provider_only
+@parse_query_params(DayValidator)
+@bind_controller(AdvertOrdersController)
+async def get_day_advert_order_views(request: Request, controller: AdvertOrdersController, params: dict) -> Response:
+    try:
+        data = await controller.get_day_views(request.user,
+                                              request.match_info['order_id'],
+                                              params.get('year'),
+                                              params.get('month'),
+                                              params.get('day'))
+        return HTTPSuccess(data=data)
+    except AttemptToGetForeignClicks as e:
+        return HTTPForbidden(errors={'order_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_VIEWS_DATA)
+    except AdvertOrderDoesNotExist as e:
+        return HTTPBadRequest(errors={'order_id': e.message}, code=ApiErrorCodes.AD_ORDER_DOES_NOT_EXIST)
+
+
+@ad_provider_only
+@parse_query_params(YearValidator)
+@bind_controller(AdvertOrdersController)
+async def get_year_advert_order_clicks(request: Request, controller: AdvertOrdersController, params: dict) -> Response:
+    try:
+        data = await controller.get_year_clicks(request.user,
+                                                request.match_info['order_id'],
+                                                params.get('year'))
+        return HTTPSuccess(data=data)
+    except AttemptToGetForeignClicks as e:
+        return HTTPForbidden(errors={'order_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_CLICKS_DATA)
+    except AdvertOrderDoesNotExist as e:
+        return HTTPBadRequest(errors={'order_id': e.message}, code=ApiErrorCodes.AD_ORDER_DOES_NOT_EXIST)
+
+
+@ad_provider_only
+@parse_query_params(MonthValidator)
+@bind_controller(AdvertOrdersController)
+async def get_month_advert_order_clicks(request: Request, controller: AdvertOrdersController, params: dict) -> Response:
+    try:
+        data = await controller.get_month_clicks(request.user,
+                                                 request.match_info['order_id'],
+                                                 params.get('year'),
+                                                 params.get('month'))
+        return HTTPSuccess(data=data)
+    except AttemptToGetForeignClicks as e:
+        return HTTPForbidden(errors={'order_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_CLICKS_DATA)
+    except AdvertOrderDoesNotExist as e:
+        return HTTPBadRequest(errors={'order_id': e.message}, code=ApiErrorCodes.AD_ORDER_DOES_NOT_EXIST)
+
+
+@ad_provider_only
+@parse_query_params(DayValidator)
+@bind_controller(AdvertOrdersController)
+async def get_day_advert_order_clicks(request: Request, controller: AdvertOrdersController, params: dict) -> Response:
+    try:
+        data = await controller.get_day_clicks(request.user,
+                                               request.match_info['order_id'],
+                                               params.get('year'),
+                                               params.get('month'),
+                                               params.get('day'))
+        return HTTPSuccess(data=data)
+    except AttemptToGetForeignClicks as e:
+        return HTTPForbidden(errors={'order_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_CLICKS_DATA)
+    except AdvertOrderDoesNotExist as e:
+        return HTTPBadRequest(errors={'order_id': e.message}, code=ApiErrorCodes.AD_ORDER_DOES_NOT_EXIST)
