@@ -9,6 +9,7 @@ from exceptions.advert_orders import (
     AdvertOrderForSuchLinkAlreadyExists, AnotherUserOrderUpdateAttempt, AdvertOrderDoesNotExist,
     AnotherUserOrderDeleteAttempt
 )
+from exceptions.analytics import AttemptToGetForeignClicks, AttemptToGetForeignViews
 from controllers.mixins import GrabAnalyticsMixin
 
 
