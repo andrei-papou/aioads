@@ -24,8 +24,7 @@ class DayValidator(MonthValidator):
         year = data.get('value')
         month = data.get('month')
         day = data.get('day')
-        if year and month and day:
-            if day > monthrange(year, month):
+        if year is not None and month is not None and day is not None:
+            _, ndays = monthrange(year, month)
+            if day > ndays:
                 raise ValidationError('This month doesn\'t have so many days')
-
-

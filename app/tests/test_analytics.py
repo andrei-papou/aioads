@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from calendar import monthrange
 from sqlalchemy import insert
 from aiohttp.test_utils import unittest_run_loop
 from extensions.testing import BaseTestCase
@@ -180,13 +181,10 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '2' in body
-        assert body['2'] == 1
-        assert str(self.now.month) in body
-        assert body[str(self.now.month)] == 6
+        assert len(body) == 12
+        assert body[0]['value'] == 1
+        assert body[1]['value'] == 1
+        assert body[self.now.month - 1]['value'] == 6
 
     @unittest_run_loop
     async def test_order_year_clicks_returns_paramed_year(self):
@@ -198,11 +196,9 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 2
-        assert '4' in body
-        assert body['4'] == 1
-        assert '5' in body
-        assert body['5'] == 1
+        assert len(body) == 12
+        assert body[3]['value'] == 1
+        assert body[4]['value'] == 1
 
     @unittest_run_loop
     async def test_order_month_clicks_returns_default_month_and_year_data(self):
@@ -212,11 +208,11 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 2
-        assert '2' in body
-        assert body['2'] == 1
+        now = datetime.now()
+        _, num_days = monthrange(now.year, now.month)
+        assert len(body) == num_days
+        assert body[0]['value'] == 2
+        assert body[1]['value'] == 1
 
     @unittest_run_loop
     async def test_order_month_clicks_returns_param_year_and_month(self):
@@ -228,9 +224,9 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '4' in body
-        assert body['4'] == 1
+        _, num_days = monthrange(2014, 4)
+        assert len(body) == num_days
+        assert body[3]['value'] == 1
 
     @unittest_run_loop
     async def test_order_day_clicks_returns_default_day_month_and_year_data(self):
@@ -240,13 +236,10 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '22' in body
-        assert body['22'] == 1
-        assert '23' in body
-        assert body['23'] == 1
+        assert len(body) == 24
+        assert body[1]['value'] == 1
+        assert body[22]['value'] == 1
+        assert body[23]['value'] == 1
 
     @unittest_run_loop
     async def test_order_day_clicks_returns_param_day_month_and_year_data(self):
@@ -258,9 +251,8 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '9' in body
-        assert body['9'] == 1
+        assert len(body) == 24
+        assert body[9]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_year_clicks_returns_default_year_data(self):
@@ -270,13 +262,10 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '2' in body
-        assert body['2'] == 1
-        assert str(self.now.month) in body
-        assert body[str(self.now.month)] == 6
+        assert len(body) == 12
+        assert body[0]['value'] == 1
+        assert body[1]['value'] == 1
+        assert body[self.now.month - 1]['value'] == 6
 
     @unittest_run_loop
     async def test_placement_year_clicks_returns_param_year_data(self):
@@ -288,11 +277,9 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 2
-        assert '4' in body
-        assert body['4'] == 1
-        assert '5' in body
-        assert body['5'] == 1
+        assert len(body) == 12
+        assert body[3]['value'] == 1
+        assert body[4]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_month_clicks_returns_default_month_and_year_data(self):
@@ -302,11 +289,11 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 2
-        assert '2' in body
-        assert body['2'] == 1
+        now = datetime.now()
+        _, num_days = monthrange(now.year, now.month)
+        assert len(body) == num_days
+        assert body[0]['value'] == 2
+        assert body[1]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_month_clicks_returns_param_year_and_month(self):
@@ -318,9 +305,9 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '4' in body
-        assert body['4'] == 1
+        _, num_days = monthrange(2014, 4)
+        assert len(body) == num_days
+        assert body[3]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_day_clicks_returns_default_day_month_and_year_data(self):
@@ -330,13 +317,10 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '22' in body
-        assert body['22'] == 1
-        assert '23' in body
-        assert body['23'] == 1
+        assert len(body) == 24
+        assert body[1]['value'] == 1
+        assert body[22]['value'] == 1
+        assert body[23]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_day_clicks_returns_param_day_month_and_year_data(self):
@@ -348,9 +332,8 @@ class AnalyticsClicksTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '9' in body
-        assert body['9'] == 1
+        assert len(body) == 24
+        assert body[9]['value'] == 1
 
 
 class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
@@ -384,13 +367,10 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '2' in body
-        assert body['2'] == 1
-        assert str(self.now.month) in body
-        assert body[str(self.now.month)] == 6
+        assert len(body) == 12
+        assert body[0]['value'] == 1
+        assert body[1]['value'] == 1
+        assert body[self.now.month - 1]['value'] == 6
 
     @unittest_run_loop
     async def test_order_year_views_returns_paramed_year(self):
@@ -402,11 +382,9 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 2
-        assert '4' in body
-        assert body['4'] == 1
-        assert '5' in body
-        assert body['5'] == 1
+        assert len(body) == 12
+        assert body[3]['value'] == 1
+        assert body[4]['value'] == 1
 
     @unittest_run_loop
     async def test_order_month_views_returns_default_month_and_year_data(self):
@@ -416,11 +394,11 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 2
-        assert '2' in body
-        assert body['2'] == 1
+        now = datetime.now()
+        _, num_days = monthrange(now.year, now.month)
+        assert len(body) == num_days
+        assert body[0]['value'] == 2
+        assert body[1]['value'] == 1
 
     @unittest_run_loop
     async def test_order_month_views_returns_param_year_and_month(self):
@@ -432,9 +410,9 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '4' in body
-        assert body['4'] == 1
+        _, num_days = monthrange(2014, 4)
+        assert len(body) == num_days
+        assert body[3]['value'] == 1
 
     @unittest_run_loop
     async def test_order_day_views_returns_default_day_month_and_year_data(self):
@@ -444,13 +422,10 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '22' in body
-        assert body['22'] == 1
-        assert '23' in body
-        assert body['23'] == 1
+        assert len(body) == 24
+        assert body[1]['value'] == 1
+        assert body[22]['value'] == 1
+        assert body[23]['value'] == 1
 
     @unittest_run_loop
     async def test_order_day_views_returns_param_day_month_and_year_data(self):
@@ -462,9 +437,8 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '9' in body
-        assert body['9'] == 1
+        assert len(body) == 24
+        assert body[9]['value'] == 1
 
 
     @unittest_run_loop
@@ -475,13 +449,10 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '2' in body
-        assert body['2'] == 1
-        assert str(self.now.month) in body
-        assert body[str(self.now.month)] == 6
+        assert len(body) == 12
+        assert body[0]['value'] == 1
+        assert body[1]['value'] == 1
+        assert body[self.now.month - 1]['value'] == 6
 
     @unittest_run_loop
     async def test_placement_year_views_returns_param_year_data(self):
@@ -493,11 +464,9 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 2
-        assert '4' in body
-        assert body['4'] == 1
-        assert '5' in body
-        assert body['5'] == 1
+        assert len(body) == 12
+        assert body[3]['value'] == 1
+        assert body[4]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_month_views_returns_default_month_and_year_data(self):
@@ -507,11 +476,11 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 2
-        assert '2' in body
-        assert body['2'] == 1
+        now = datetime.now()
+        _, num_days = monthrange(now.year, now.month)
+        assert len(body) == num_days
+        assert body[0]['value'] == 2
+        assert body[1]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_month_views_returns_param_year_and_month(self):
@@ -523,9 +492,9 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '4' in body
-        assert body['4'] == 1
+        _, num_days = monthrange(2014, 4)
+        assert len(body) == num_days
+        assert body[3]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_day_views_returns_default_day_month_and_year_data(self):
@@ -535,13 +504,10 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 3
-        assert '1' in body
-        assert body['1'] == 1
-        assert '22' in body
-        assert body['22'] == 1
-        assert '23' in body
-        assert body['23'] == 1
+        assert len(body) == 24
+        assert body[1]['value'] == 1
+        assert body[22]['value'] == 1
+        assert body[23]['value'] == 1
 
     @unittest_run_loop
     async def test_placement_day_views_returns_param_day_month_and_year_data(self):
@@ -553,6 +519,5 @@ class AnalyticsViewsTestCase(AnalyticsSetupMixin, BaseTestCase):
         body = await response.json()
         await response.release()
 
-        assert len(body) == 1
-        assert '9' in body
-        assert body['9'] == 1
+        assert len(body) == 24
+        assert body[9]['value'] == 1
