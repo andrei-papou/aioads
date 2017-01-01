@@ -5,7 +5,8 @@ from extensions.http import HTTPSuccess, HTTPBadRequest, HTTPNotFound, HTTPCreat
 from constants import ApiErrorCodes
 from controllers.placements import PlacementsController
 from exceptions.placements import (
-    DuplicatedPlacement, AdvertOrderDoesNotExist, PlacementDoesNotExist, AttemptToRemoveForeignPlacement
+    DuplicatedPlacement, AdvertOrderDoesNotExist, PlacementDoesNotExist, AttemptToRemoveForeignPlacement,
+    AttemptToGetForeignPlacement,
 )
 from validators.placements import RegisterPlacementValidator
 from validators.analytics import YearValidator, MonthValidator, DayValidator
@@ -16,6 +17,18 @@ from validators.analytics import YearValidator, MonthValidator, DayValidator
 async def get_placements(request: Request, controller: PlacementsController) -> Response:
     data = await controller.get_placements(user=request.user)
     return HTTPSuccess(data=data)
+
+
+@ad_placer_only
+@bind_controller(PlacementsController)
+async def get_placement(request: Request, controller: PlacementsController) -> Response:
+    try:
+        data = await controller.get_placement(request.user, request.match_info['placement_id'])
+        return HTTPSuccess(data=data)
+    except PlacementDoesNotExist as e:
+        return HTTPBadRequest(errors={'placement_id': e.message}, code=ApiErrorCodes.PLACEMENT_DOES_NOT_EXIST)
+    except AttemptToGetForeignPlacement as e:
+        return HTTPBadRequest(errors={'placement_id': e.message}, code=ApiErrorCodes.ATTEMPT_TO_GET_FOREIGN_PLACEMENT)
 
 
 @ad_placer_only

@@ -28,13 +28,37 @@ class PlacementsQueryFactory:
             placements.c.id,
             placements.c.placer_id,
             placements.c.order_id,
-            placements.c.placed_at
+            placements.c.placed_at,
+            sa.func.count(views.c.id).label('views'),
+            sa.func.count(clicks.c.id).label('clicks')
         ]
-        return sa.select(columns).where(placements.c.placer_id == owner_id)
+        tables = placements\
+            .outerjoin(clicks, clicks.c.placement_id == placements.c.id)\
+            .outerjoin(views, views.c.placement_id == placements.c.id)
+        return sa\
+            .select(columns)\
+            .select_from(tables)\
+            .where(placements.c.placer_id == owner_id)\
+            .group_by(placements.c.id)
 
     @staticmethod
     def get_placement(placement_id: int):
-        return sa.select([placements]).where(placements.c.id == placement_id)
+        columns = [
+            placements.c.id,
+            placements.c.placer_id,
+            placements.c.order_id,
+            placements.c.placed_at,
+            sa.func.count(views.c.id).label('views'),
+            sa.func.count(clicks.c.id).label('clicks')
+        ]
+        tables = placements \
+            .outerjoin(clicks, clicks.c.placement_id == placements.c.id) \
+            .outerjoin(views, views.c.placement_id == placements.c.id)
+        return sa \
+            .select(columns) \
+            .select_from(tables) \
+            .where(placements.c.id == placement_id) \
+            .group_by(placements.c.id)
 
     @staticmethod
     def get_clicks(p_id: int, start_date: datetime, end_date: datetime):

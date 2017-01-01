@@ -8,7 +8,7 @@ from handlers.advert_orders import (
 from handlers.placements import (
     get_placements, create_placement, delete_placement, get_year_placement_clicks,
     get_year_placement_views, get_month_placement_views, get_day_placement_views,
-    get_month_placement_clicks, get_day_placement_clicks,
+    get_month_placement_clicks, get_day_placement_clicks, get_placement
 )
 from handlers.analytics import register_click, register_view
 
@@ -110,7 +110,10 @@ route_config = {
     },
     '/placements/{placement_id}': {
         'name': EndpointsMapper.PLACEMENT,
-        'methods': {DELETE: delete_placement}
+        'methods': {
+            GET: get_placement,
+            DELETE: delete_placement
+        }
     },
     '/placements/{placement_id}/year-clicks': {
         'name': EndpointsMapper.PLACEMENT_YEAR_CLICKS,

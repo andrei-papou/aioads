@@ -55,6 +55,27 @@ class PlacementsController(GrabAnalyticsMixin, BaseController):
         async with self.db.acquire() as conn:
             return await conn.execute(query)
 
+    async def get_placement(self, user: User, placement_id: int) -> dict:
+        query = PlacementsQF.get_placement(placement_id)
+
+        async with self.db.acquire() as conn:
+            rp = await conn.execute(query)
+            p_data = await rp.first()
+
+        if p_data is None:
+            raise PlacementDoesNotExist()
+
+        if p_data.placer_id != user.specific_data['specific_id']:
+            raise AttemptToGetForeignClicks()
+
+        return {
+            'id': p_data.id,
+            'order_id': p_data.order_id,
+            'placed_at': p_data.placed_at.strftime("%Y-%m-%d %H:%M:%S"),
+            'clicks': p_data.clicks,
+            'views': p_data.views
+        }
+
     async def create_placement(self, user: User, order_id: int) -> dict:
         query = PlacementsQF.create_placement(user.specific_data['specific_id'], order_id)
 

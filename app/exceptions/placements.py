@@ -15,3 +15,7 @@ class PlacementDoesNotExist(DefaultMessageException):
 
 class AttemptToRemoveForeignPlacement(DefaultMessageException):
     default_message = 'Attempt to remove foreign placement'
+
+
+class AttemptToGetForeignPlacement(DefaultMessageException):
+    default_message = 'Attempt to get foreign placement'
