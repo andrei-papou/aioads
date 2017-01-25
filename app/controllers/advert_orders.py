@@ -48,9 +48,9 @@ class AdvertOrdersController(GrabAnalyticsMixin, BaseController):
         return rp
 
     @serialize(schema=list_advert_orders_schema)
-    async def get_orders(self) -> list:
+    async def get_orders(self, user: User) -> list:
         async with self.db.acquire() as conn:
-            rp = await conn.execute(AdvertOrdersQF.get_advert_orders())
+            rp = await conn.execute(AdvertOrdersQF.get_advert_orders(user.specific_data['specific_id']))
         return rp
 
     async def get_order(self, order_id: int) -> dict:

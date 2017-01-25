@@ -30,7 +30,7 @@ def get_for_order(table: sa.Table, o_id: int, start_date: datetime, end_date: da
 class AdvertOrdersQueryFactory:
 
     @staticmethod
-    def get_advert_orders() -> selectable.Select:
+    def get_advert_orders(user_id: int) -> selectable.Select:
         columns = [
             advert_orders.c.id,
             advert_orders.c.heading_picture,
@@ -46,6 +46,7 @@ class AdvertOrdersQueryFactory:
             .outerjoin(clicks, placements.c.id == clicks.c.placement_id)
         return sa.select(columns)\
             .select_from(tables)\
+            .where(advert_orders.c.owner_id == user_id)\
             .group_by(advert_orders.c.id)\
             .order_by(advert_orders.c.rank.desc())
 

@@ -16,7 +16,7 @@ from constants import ApiErrorCodes
 @auth_required
 @bind_controller(AdvertOrdersController)
 async def get_advert_orders(request: Request, controller: AdvertOrdersController) -> Response:
-    result = await controller.get_orders()
+    result = await controller.get_orders(request.user)
     return HTTPSuccess(data=result)
 
 
