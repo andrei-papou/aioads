@@ -1,11 +1,7 @@
-from datetime import datetime, timedelta
-from collections import Counter
 from psycopg2 import IntegrityError
-from extensions.user_model import User
 from extensions.controllers import BaseController
 from data_access.analytics import ClicksQueryFactory as ClicksQF, ViewsQueryFactory as ViewsQF
-from data_access.placements import PlacementsQueryFactory as PlacementsQF
-from exceptions.analytics import PlacementDoesNotExist, AttemptToGetForeignClicks, AttemptToGetForeignViews
+from exceptions.analytics import PlacementDoesNotExist
 
 
 class AnalyticsController(BaseController):
@@ -27,3 +23,39 @@ class AnalyticsController(BaseController):
                 await conn.execute(query)
             except IntegrityError:
                 raise PlacementDoesNotExist()
+
+    async def get_script(self, placement_id: int):
+        """
+        Something like this:
+
+        <div id='advert'>
+                <img src='{banner_image_url}'>
+            </div>
+            <script>
+                (function() {
+                    var advWrapper = document.getElementById('advert'),
+                        link = advWrapper.getElementsByTagName('img')[0];
+
+                    adWrapper.onload = function() {
+                        var xhr = new XMLHttpRequest();
+
+                        request.open('POST', {view_register_url}, true);
+                        request.send(null);
+                    };
+
+                    link.onclick = function(event) {
+                        var xhr = XMLHttpRequest();
+
+                        xhr.onload = function() {
+                            window.location.href = {follow_url_link};
+                        };
+
+                        request.open('POST', {click_register_url}, true);
+                        request.send(null);
+
+                        event.preventDefault();
+                    };
+                })();
+            </script>
+        """
+        pass

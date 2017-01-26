@@ -5,7 +5,7 @@ class BaseSettings:
     JWT_HEADER = 'Authorization'
     JWT_SECRET = '@#FUH#(*YF&Y#M+*#YU#*RY+ce*Y#xU*lJE(kyt#U=-)@afe!v'
     JWT_ALGORITHM = 'HS256'
-    JWT_EXT_DELTA_SECODNS = 365 * 24 * 3600
+    JWT_EXT_DELTA_SECONDS = 365 * 24 * 3600
 
     THREAD_POOL_LIMIT = 2
     PROCESS_POOL_LIMIT = 20
@@ -15,7 +15,7 @@ class BaseSettings:
 
 class DevSettings(BaseSettings):
     HOST = '0.0.0.0'
-    PORT = 8000
+    PORT = 4000
 
     DB_USER = 'admin'
     DB_NAME = 'ads-dev'
